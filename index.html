@@ -50,6 +50,10 @@
       overflow-x: hidden;
     }
 
+    body.quiz-active {
+      overflow: hidden;
+    }
+
     body::before,
     body::after {
       content: "";
@@ -99,7 +103,7 @@
     .shell {
       position: relative;
       z-index: 1;
-      min-height: 100vh;
+      min-height: 100dvh;
       padding: 20px;
       display: flex;
       align-items: center;
@@ -369,6 +373,12 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .quiz-main {
+      min-height: 0;
     }
 
     .quiz-topbar {
@@ -577,6 +587,7 @@
     }
 
     .controls-left,
+    .controls-center,
     .controls-right {
       display: flex;
       gap: 12px;
@@ -588,20 +599,45 @@
       justify-content: flex-end;
     }
 
-    .submit-btn {
+    .controls-center {
+      justify-content: center;
+      flex: 1 1 auto;
+    }
+
+    .controls-right {
+      min-width: 84px;
+    }
+
+    .submit-btn,
+    .action-btn {
       padding: 16px 22px;
       border-radius: 18px;
       background: linear-gradient(135deg, var(--accent-2), #ff9b73);
       color: #1c1304;
       font-weight: 900;
       box-shadow: 0 16px 32px rgba(255, 155, 115, 0.2);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.18s ease;
     }
 
-    .submit-btn:disabled {
+    .action-btn.is-next {
+      background: linear-gradient(135deg, var(--accent), #5fb8ff);
+      color: #062126;
+      box-shadow: 0 16px 32px rgba(95, 184, 255, 0.2);
+    }
+
+    .submit-btn:disabled,
+    .action-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
+    }
+
+    .controls-status {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: right;
     }
 
     .helper-text {
@@ -912,14 +948,185 @@
       .weak-card { padding: 18px; }
 
       .mode-grid,
-      .count-grid,
-      .choices {
+      .count-grid {
         grid-template-columns: 1fr;
       }
 
       .word-panel {
         min-height: 0;
-        padding: 20px;
+        padding: 14px 16px;
+        gap: 8px;
+      }
+
+      body.quiz-active .panel {
+        padding: 12px;
+      }
+
+      body.quiz-active .app {
+        min-height: 100dvh;
+        height: 100dvh;
+      }
+
+      body.quiz-active #quizPanel {
+        height: 100%;
+      }
+
+      body.quiz-active .quiz-layout {
+        min-height: 100%;
+        height: 100%;
+        grid-template-columns: 1fr;
+      }
+
+      body.quiz-active .quiz-side {
+        display: none;
+      }
+
+      body.quiz-active .quiz-main {
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+        gap: 10px;
+        height: 100%;
+      }
+
+      body.quiz-active .quiz-topbar {
+        gap: 10px;
+      }
+
+      body.quiz-active .meter-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+        gap: 8px;
+      }
+
+      body.quiz-active .badge {
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+
+      body.quiz-active .timer-chip {
+        width: 100%;
+        justify-content: center;
+        padding: 8px 10px 8px 8px;
+      }
+
+      body.quiz-active .timer-ring {
+        width: 38px;
+        height: 38px;
+      }
+
+      body.quiz-active .timer-ring::before {
+        width: 28px;
+        height: 28px;
+      }
+
+      body.quiz-active .timer-label strong {
+        font-size: 16px;
+      }
+
+      body.quiz-active .question-label {
+        font-size: 11px;
+      }
+
+      body.quiz-active .word-title {
+        font-size: clamp(24px, 7vw, 32px);
+        line-height: 1.12;
+      }
+
+      body.quiz-active .word-meta {
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      body.quiz-active .choices {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        min-height: 0;
+        align-content: start;
+      }
+
+      body.quiz-active .choice {
+        min-height: 76px;
+        padding: 12px 10px;
+        border-radius: 16px;
+        gap: 8px;
+      }
+
+      body.quiz-active .choice-index {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+      }
+
+      body.quiz-active .choice-text {
+        font-size: 13px;
+        line-height: 1.38;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4;
+        overflow: hidden;
+      }
+
+      body.quiz-active .feedback-box {
+        min-height: 84px;
+        max-height: 24dvh;
+        padding: 14px;
+        gap: 10px;
+        overflow: auto;
+      }
+
+      body.quiz-active .feedback-title {
+        font-size: 18px;
+      }
+
+      body.quiz-active .feedback-copy,
+      body.quiz-active .feedback-raw {
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      body.quiz-active .feedback-raw {
+        max-height: 14dvh;
+        overflow: auto;
+        padding: 10px 12px;
+      }
+
+      body.quiz-active .meaning-pill {
+        font-size: 11px;
+        padding: 8px 10px;
+      }
+
+      body.quiz-active .controls {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+      }
+
+      body.quiz-active .controls-left,
+      body.quiz-active .controls-center,
+      body.quiz-active .controls-right {
+        width: auto;
+      }
+
+      body.quiz-active .controls-center {
+        justify-content: center;
+      }
+
+      body.quiz-active .ghost-btn {
+        padding: 12px 14px;
+      }
+
+      body.quiz-active .action-btn {
+        min-width: 164px;
+        width: auto;
+        padding: 14px 18px;
+      }
+
+      body.quiz-active .controls-status {
+        font-size: 11px;
+        text-align: right;
       }
 
       .controls {
@@ -927,6 +1134,7 @@
       }
 
       .controls-left,
+      .controls-center,
       .controls-right,
       .summary-actions,
       .launch-row {
@@ -934,6 +1142,7 @@
       }
 
       .controls-left > *,
+      .controls-center > *,
       .controls-right > *,
       .summary-actions > *,
       .launch-row > * {
@@ -941,13 +1150,13 @@
       }
 
       .submit-btn,
+      .action-btn,
       .primary-btn,
       .ghost-btn,
       .next-btn {
         width: 100%;
       }
 
-      .timer-chip { width: 100%; justify-content: center; }
       .quiz-topbar { align-items: stretch; }
       .summary-grid,
       .stat-grid { grid-template-columns: 1fr 1fr; }
@@ -1028,7 +1237,7 @@
 
       <section class="panel" id="quizPanel">
         <div class="quiz-layout">
-          <div class="quiz-card">
+          <div class="quiz-card quiz-main">
             <div class="quiz-topbar">
               <div class="meter-strip">
                 <span class="badge" id="sessionModeBadge">SMART MODE</span>
@@ -1053,9 +1262,11 @@
               <div class="controls-left">
                 <button class="ghost-btn" id="clearBtn">選択をリセット</button>
               </div>
+              <div class="controls-center">
+                <button class="action-btn" id="actionBtn" disabled data-mode="submit">判定する</button>
+              </div>
               <div class="controls-right">
-                <button class="next-btn hidden" id="nextBtn">次へ</button>
-                <button class="submit-btn" id="submitBtn" disabled>判定する</button>
+                <div class="controls-status" id="controlsStatus">必要数を選ぶと判定できます</div>
               </div>
             </div>
 
@@ -1064,7 +1275,7 @@
             </div>
           </div>
 
-          <div class="quiz-card">
+          <div class="quiz-card quiz-side">
             <div class="insight-list">
               <div class="insight-card">
                 <h3>このゲームのコツ</h3>
@@ -1159,8 +1370,8 @@
       wordMeta: document.getElementById('wordMeta'),
       choices: document.getElementById('choices'),
       clearBtn: document.getElementById('clearBtn'),
-      nextBtn: document.getElementById('nextBtn'),
-      submitBtn: document.getElementById('submitBtn'),
+      actionBtn: document.getElementById('actionBtn'),
+      controlsStatus: document.getElementById('controlsStatus'),
       feedbackBox: document.getElementById('feedbackBox'),
       ruleHint: document.getElementById('ruleHint'),
       summaryCopy: document.getElementById('summaryCopy'),
@@ -1363,6 +1574,7 @@
       timerId: null,
       toastId: null,
       advanceId: null,
+      actionLocked: false,
     };
 
     function loadStats() {
@@ -1416,6 +1628,18 @@
       els.statStudied.textContent = studied;
       els.statMastered.textContent = mastered;
       els.statWeak.textContent = weak;
+    }
+
+    function updateQuizActiveClass() {
+      document.body.classList.toggle('quiz-active', els.quizPanel.classList.contains('active'));
+    }
+
+    function setActionState(mode, { disabled = false, label = '', status = '' } = {}) {
+      els.actionBtn.dataset.mode = mode;
+      els.actionBtn.textContent = label || (mode === 'next' ? '次へ' : '判定する');
+      els.actionBtn.disabled = disabled;
+      els.actionBtn.classList.toggle('is-next', mode === 'next');
+      if (status) els.controlsStatus.textContent = status;
     }
 
     function modeLabel(mode) {
@@ -1564,6 +1788,7 @@
         previousTerms: [],
         startedAt: Date.now(),
       };
+      state.actionLocked = false;
       switchPanel('quiz');
       nextQuestion();
     }
@@ -1572,6 +1797,7 @@
       els.homePanel.classList.toggle('active', name === 'home');
       els.quizPanel.classList.toggle('active', name === 'quiz');
       els.summaryPanel.classList.toggle('active', name === 'summary');
+      updateQuizActiveClass();
     }
 
     function scheduleRetry(termId, retryCount = 0) {
@@ -1610,6 +1836,7 @@
     function nextQuestion() {
       clearTimeout(state.advanceId);
       clearTimer();
+      state.actionLocked = false;
       const next = takeNextTerm();
       if (!next) {
         finishSession();
@@ -1619,6 +1846,7 @@
       state.session.currentRetryCount = next.retryCount;
       state.session.previousTerms.push(next.term.id);
       state.currentQuestion = createQuestion(next.term, next.phase);
+      state.currentQuestion.resolved = false;
       state.selectedIds = new Set();
       renderQuestion();
       startTimer(state.currentQuestion.timeLimit);
@@ -1635,9 +1863,12 @@
       const phaseLabel = state.currentQuestion.phase === 'main' ? '本戦' : '復習';
       els.wordMeta.innerHTML = `${headword}<strong>${correctCount}個選択</strong> ・ ${optionCount}択 ・ ${phaseLabel}ラウンド`;
       els.ruleHint.textContent = `今のラウンドは ${optionCount}択中 ${correctCount}個正解 の形式です。`;
-      els.nextBtn.classList.add('hidden');
-      els.submitBtn.classList.remove('hidden');
       els.clearBtn.classList.remove('hidden');
+      setActionState('submit', {
+        disabled: true,
+        label: '判定する',
+        status: `${correctCount}個ちょうど選ぶと判定できます`,
+      });
       els.feedbackBox.className = 'feedback-box empty';
       els.feedbackBox.innerHTML = `<div class="helper-text">該当する意味をすべてタップしてから判定してください。今回は <strong>${correctCount}個ちょうど</strong> 選ぶと判定ボタンが有効になります。</div>`;
       renderChoices();
@@ -1662,11 +1893,19 @@
         `;
       }).join('');
       els.choices.innerHTML = optionsHtml;
-      els.submitBtn.disabled = reveal || state.selectedIds.size !== state.currentQuestion.correctIds.size;
+      if (reveal) return;
+      updateSubmitAvailability();
     }
 
     function updateSubmitAvailability() {
-      els.submitBtn.disabled = state.selectedIds.size !== state.currentQuestion.correctIds.size;
+      const needed = state.currentQuestion.correctIds.size;
+      const selected = state.selectedIds.size;
+      const remaining = needed - selected;
+      setActionState('submit', {
+        disabled: selected !== needed,
+        label: '判定する',
+        status: remaining > 0 ? `あと${remaining}個選んでください` : selected > needed ? '選択数が多すぎます' : 'この内容で判定できます',
+      });
     }
 
     function startTimer(limit) {
@@ -1730,9 +1969,11 @@
     }
 
     function submitAnswer(reason = 'manual') {
-      if (!state.currentQuestion) return;
+      if (!state.currentQuestion || state.currentQuestion.resolved || state.actionLocked) return;
+      state.actionLocked = true;
+      state.currentQuestion.resolved = true;
       clearTimer();
-      const { term, correctIds, options, timeLimit } = state.currentQuestion;
+      const { term, correctIds } = state.currentQuestion;
       const selected = Array.from(state.selectedIds);
       const isExact = selected.length === correctIds.size && selected.every((id) => correctIds.has(id));
       const wasTimeout = reason === 'timeout';
@@ -1789,14 +2030,16 @@
         <div class="feedback-raw">${fullDefinition}</div>
       `;
 
-      els.nextBtn.classList.remove('hidden');
-      els.submitBtn.disabled = true;
       els.clearBtn.classList.add('hidden');
-      if (isCorrect) {
-        state.advanceId = setTimeout(nextQuestion, 900);
-      } else if (wasTimeout) {
+      setActionState('next', {
+        disabled: false,
+        label: '次へ',
+        status: isCorrect ? '結果を確認したら次へ' : '復習キューに追加済み。次の問題へ',
+      });
+      state.actionLocked = false;
+      if (wasTimeout) {
         showToast('時間切れ。苦手語として記録しました');
-      } else {
+      } else if (!isCorrect) {
         showToast('復習キューに追加しました');
       }
     }
@@ -1875,12 +2118,21 @@
     els.startBtn.addEventListener('click', () => startSession(state.mode, state.count));
     els.resetStatsBtn.addEventListener('click', resetStats);
     els.clearBtn.addEventListener('click', () => {
+      if (!state.currentQuestion || state.currentQuestion.resolved) return;
       state.selectedIds.clear();
       renderChoices();
       updateSubmitAvailability();
     });
-    els.nextBtn.addEventListener('click', nextQuestion);
-    els.submitBtn.addEventListener('click', () => submitAnswer('manual'));
+    els.actionBtn.addEventListener('click', () => {
+      if (state.actionLocked) return;
+      if (els.actionBtn.dataset.mode === 'submit') {
+        submitAnswer('manual');
+        return;
+      }
+      state.actionLocked = true;
+      setActionState('next', { disabled: true, label: '次へ', status: '読み込み中…' });
+      nextQuestion();
+    });
     els.retryWeakBtn.addEventListener('click', () => startSession('weak', state.count));
     els.retryModeBtn.addEventListener('click', () => startSession(state.session?.mode || state.mode, state.session?.requestedCount || state.count));
     els.backHomeBtn.addEventListener('click', () => switchPanel('home'));
@@ -1897,6 +2149,7 @@
 
     window.addEventListener('keydown', (event) => {
       if (!els.quizPanel.classList.contains('active') || !state.currentQuestion) return;
+      if (state.currentQuestion.resolved && /^[1-8Rr]$/.test(event.key)) return;
       if (/^[1-8]$/.test(event.key)) {
         const index = Number(event.key) - 1;
         const option = state.currentQuestion.options[index];
@@ -1907,9 +2160,15 @@
         updateSubmitAvailability();
       }
       if (event.key === 'Enter') {
-        if (!els.submitBtn.disabled) submitAnswer('manual');
+        if (els.actionBtn.dataset.mode === 'submit' && !els.actionBtn.disabled) submitAnswer('manual');
+        else if (els.actionBtn.dataset.mode === 'next' && !els.actionBtn.disabled && !state.actionLocked) {
+          state.actionLocked = true;
+          setActionState('next', { disabled: true, label: '次へ', status: '読み込み中…' });
+          nextQuestion();
+        }
       }
       if (event.key.toLowerCase() === 'r') {
+        if (state.currentQuestion.resolved) return;
         state.selectedIds.clear();
         renderChoices();
         updateSubmitAvailability();
