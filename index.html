@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d1b24" />
+  <title>古文単語スプリント</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-0: #07141b;
+      --bg-1: #0d1b24;
+      --bg-2: #14313a;
+      --panel: rgba(10, 24, 32, 0.8);
+      --panel-strong: rgba(14, 31, 42, 0.94);
+      --line: rgba(184, 229, 223, 0.16);
+      --text: #effbf7;
+      --muted: #9cc3bb;
+      --accent: #7ef3d6;
+      --accent-2: #ffc86f;
+      --accent-3: #ff8a65;
+      --danger: #ff6f61;
+      --success: #6ef0b0;
+      --shadow: 0 28px 70px rgba(0, 0, 0, 0.35);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+      --font-ui: "Avenir Next", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      --font-display: "Avenir Next Condensed", "Hiragino Mincho ProN", "Yu Mincho", serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(126, 243, 214, 0.16), transparent 32%),
+        radial-gradient(circle at 85% 10%, rgba(255, 200, 111, 0.18), transparent 24%),
+        radial-gradient(circle at 50% 100%, rgba(255, 138, 101, 0.13), transparent 34%),
+        linear-gradient(160deg, var(--bg-0), var(--bg-1) 48%, #0a1117 100%);
+      color: var(--text);
+      font-family: var(--font-ui);
+      overscroll-behavior-y: none;
+    }
+
+    body {
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      width: 38vmax;
+      height: 38vmax;
+      border-radius: 50%;
+      filter: blur(26px);
+      pointer-events: none;
+      opacity: 0.28;
+      z-index: 0;
+    }
+
+    body::before {
+      top: -12vmax;
+      left: -10vmax;
+      background: radial-gradient(circle, rgba(126, 243, 214, 0.45), transparent 66%);
+      animation: driftA 16s ease-in-out infinite alternate;
+    }
+
+    body::after {
+      right: -10vmax;
+      bottom: -14vmax;
+      background: radial-gradient(circle, rgba(255, 200, 111, 0.36), transparent 68%);
+      animation: driftB 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes driftA {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to { transform: translate3d(2vmax, 3vmax, 0) scale(1.08); }
+    }
+
+    @keyframes driftB {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to { transform: translate3d(-3vmax, -2vmax, 0) scale(1.06); }
+    }
+
+    button, input, select { font: inherit; }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app {
+      width: min(1120px, 100%);
+      min-height: min(860px, calc(100vh - 40px));
+      border-radius: var(--radius-xl);
+      background: linear-gradient(180deg, rgba(14, 28, 36, 0.9), rgba(7, 17, 23, 0.96));
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .panel {
+      display: none;
+      min-height: inherit;
+      padding: 32px;
+      position: relative;
+    }
+
+    .panel.active {
+      display: block;
+      animation: panelIn 0.45s ease;
+    }
+
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      min-height: calc(100vh - 104px);
+      align-items: stretch;
+    }
+
+    .hero-card,
+    .side-card,
+    .quiz-card,
+    .summary-card,
+    .weak-card {
+      background: linear-gradient(180deg, rgba(18, 38, 49, 0.78), rgba(10, 22, 30, 0.88));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .hero-card {
+      padding: 34px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+      background:
+        linear-gradient(180deg, rgba(18, 38, 49, 0.78), rgba(10, 22, 30, 0.88)),
+        radial-gradient(circle at 80% 0%, rgba(255, 200, 111, 0.12), transparent 30%);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(126, 243, 214, 0.08);
+      width: fit-content;
+    }
+
+    .hero-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 62px);
+      line-height: 1.02;
+      letter-spacing: 0.02em;
+    }
+
+    .hero-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(15px, 2vw, 18px);
+      line-height: 1.8;
+      max-width: 38rem;
+    }
+
+    .hero-copy strong { color: var(--text); }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stat-tile {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      display: block;
+      margin-top: 8px;
+      font-size: clamp(22px, 4vw, 34px);
+      font-weight: 800;
+    }
+
+    .hero-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .hero-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .side-card { padding: 22px; }
+
+    .card-title {
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+
+    .card-subtitle {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .mode-grid,
+    .count-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .count-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .mode-btn,
+    .count-btn,
+    .primary-btn,
+    .ghost-btn,
+    .next-btn {
+      position: relative;
+      border-radius: 18px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .mode-btn,
+    .count-btn,
+    .ghost-btn {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      text-align: left;
+    }
+
+    .mode-btn:hover,
+    .count-btn:hover,
+    .choice:hover,
+    .primary-btn:hover,
+    .ghost-btn:hover,
+    .next-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .mode-btn.active,
+    .count-btn.active {
+      background: linear-gradient(180deg, rgba(126, 243, 214, 0.18), rgba(126, 243, 214, 0.07));
+      border-color: rgba(126, 243, 214, 0.46);
+      box-shadow: 0 12px 34px rgba(126, 243, 214, 0.12);
+    }
+
+    .mode-name {
+      display: block;
+      font-weight: 800;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .mode-note {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .count-btn {
+      text-align: center;
+      font-weight: 800;
+      font-size: 18px;
+      padding: 18px 12px;
+    }
+
+    .launch-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, var(--accent), #5fb8ff);
+      color: #062126;
+      font-weight: 900;
+      padding: 16px 22px;
+      min-width: 180px;
+      box-shadow: 0 16px 36px rgba(95, 184, 255, 0.18);
+    }
+
+    .ghost-btn,
+    .next-btn {
+      color: var(--text);
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .small-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .quiz-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 22px;
+      min-height: calc(100vh - 104px);
+    }
+
+    .quiz-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .quiz-topbar {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .meter-strip {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      font-size: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .timer-chip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 14px 10px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .timer-ring {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) 100%, rgba(255,255,255,0.08) 0);
+      display: grid;
+      place-items: center;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .timer-ring::before {
+      content: "";
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(8, 17, 23, 0.94);
+      position: absolute;
+    }
+
+    .timer-value {
+      position: relative;
+      z-index: 1;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+    }
+
+    .timer-label strong {
+      display: block;
+      color: var(--text);
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    .timer-label span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .word-panel {
+      padding: clamp(22px, 4vw, 36px);
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)),
+        radial-gradient(circle at 85% 0%, rgba(126,243,214,0.14), transparent 25%);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .question-label {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .word-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(34px, 5vw, 52px);
+      line-height: 1.15;
+      white-space: pre-line;
+    }
+
+    .word-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .word-meta strong { color: var(--accent-2); }
+
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .choice {
+      padding: 18px 18px 18px 16px;
+      border-radius: 20px;
+      text-align: left;
+      min-height: 92px;
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .choice::after {
+      content: "";
+      position: absolute;
+      inset: auto -30% -40% auto;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(126,243,214,0.12), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.18s ease;
+    }
+
+    .choice:hover::after,
+    .choice.selected::after { opacity: 1; }
+
+    .choice.selected {
+      background: linear-gradient(180deg, rgba(126,243,214,0.14), rgba(126,243,214,0.06));
+      border-color: rgba(126,243,214,0.44);
+      box-shadow: 0 18px 34px rgba(10, 27, 35, 0.22);
+    }
+
+    .choice.correct {
+      background: linear-gradient(180deg, rgba(110,240,176,0.18), rgba(110,240,176,0.08));
+      border-color: rgba(110,240,176,0.56);
+    }
+
+    .choice.incorrect {
+      background: linear-gradient(180deg, rgba(255,111,97,0.16), rgba(255,111,97,0.07));
+      border-color: rgba(255,111,97,0.52);
+    }
+
+    .choice.disabled { cursor: default; }
+
+    .choice-index {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .choice.selected .choice-index {
+      background: rgba(126,243,214,0.18);
+      color: var(--text);
+    }
+
+    .choice-text {
+      flex: 1;
+      font-size: 16px;
+      line-height: 1.65;
+      position: relative;
+      z-index: 1;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .controls-left,
+    .controls-right {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .controls-right {
+      justify-content: flex-end;
+    }
+
+    .submit-btn {
+      padding: 16px 22px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent-2), #ff9b73);
+      color: #1c1304;
+      font-weight: 900;
+      box-shadow: 0 16px 32px rgba(255, 155, 115, 0.2);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .helper-text {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .feedback-box {
+      min-height: 138px;
+      border-radius: 24px;
+      padding: 18px;
+      border: 1px dashed rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .feedback-box.empty {
+      justify-content: center;
+      color: var(--muted);
+    }
+
+    .feedback-title {
+      margin: 0;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feedback-title.success { color: var(--success); }
+    .feedback-title.fail { color: #ffb09e; }
+
+    .feedback-copy {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .feedback-raw {
+      margin: 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      line-height: 1.8;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+
+    .correct-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .meaning-pill,
+    .weak-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .meaning-pill strong,
+    .weak-pill strong { color: var(--text); }
+
+    .insight-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .insight-card {
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .insight-card h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .insight-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .summary-layout {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+      min-height: calc(100vh - 104px);
+    }
+
+    .summary-card,
+    .weak-card { padding: 28px; }
+
+    .summary-hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .summary-title {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 42px);
+      font-family: var(--font-display);
+    }
+
+    .summary-copy {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 15px;
+      max-width: 36rem;
+    }
+
+    .score-burst {
+      min-width: 180px;
+      padding: 18px 20px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(126,243,214,0.16), rgba(255,200,111,0.08));
+      border: 1px solid rgba(126,243,214,0.32);
+    }
+
+    .score-burst span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .score-burst strong {
+      display: block;
+      margin-top: 10px;
+      font-size: clamp(36px, 5vw, 54px);
+      line-height: 1;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .summary-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .weak-list {
+      display: grid;
+      gap: 12px;
+      max-height: 460px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .weak-item {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .weak-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .weak-word {
+      font-weight: 900;
+      font-size: 17px;
+      white-space: pre-line;
+    }
+
+    .weak-score {
+      color: var(--accent-3);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .weak-meanings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(24px);
+      padding: 14px 18px;
+      background: rgba(9, 20, 27, 0.92);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text);
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s ease, transform 0.24s ease;
+      z-index: 30;
+      box-shadow: var(--shadow);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .flash { animation: flashPulse 0.4s ease; }
+
+    @keyframes flashPulse {
+      0% { transform: scale(0.98); }
+      50% { transform: scale(1.012); }
+      100% { transform: scale(1); }
+    }
+
+    .confetti {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .confetti-dot {
+      position: absolute;
+      width: 10px;
+      height: 16px;
+      border-radius: 999px;
+      opacity: 0;
+      animation: confettiDrop 900ms ease forwards;
+    }
+
+    @keyframes confettiDrop {
+      0% { transform: translate3d(0, -18px, 0) rotate(0deg); opacity: 0; }
+      12% { opacity: 1; }
+      100% { transform: translate3d(var(--dx), 120px, 0) rotate(380deg); opacity: 0; }
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 980px) {
+      .home-grid,
+      .quiz-layout,
+      .summary-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid,
+      .stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell { padding: 0; }
+
+      .app {
+        min-height: 100vh;
+        border-radius: 0;
+        width: 100%;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .hero-card,
+      .side-card,
+      .quiz-card,
+      .summary-card,
+      .weak-card {
+        border-radius: 22px;
+      }
+
+      .hero-card { padding: 22px; }
+      .side-card,
+      .quiz-card,
+      .summary-card,
+      .weak-card { padding: 18px; }
+
+      .mode-grid,
+      .count-grid,
+      .choices {
+        grid-template-columns: 1fr;
+      }
+
+      .word-panel {
+        min-height: 0;
+        padding: 20px;
+      }
+
+      .controls {
+        align-items: stretch;
+      }
+
+      .controls-left,
+      .controls-right,
+      .summary-actions,
+      .launch-row {
+        width: 100%;
+      }
+
+      .controls-left > *,
+      .controls-right > *,
+      .summary-actions > *,
+      .launch-row > * {
+        flex: 1 1 auto;
+      }
+
+      .submit-btn,
+      .primary-btn,
+      .ghost-btn,
+      .next-btn {
+        width: 100%;
+      }
+
+      .timer-chip { width: 100%; justify-content: center; }
+      .quiz-topbar { align-items: stretch; }
+      .summary-grid,
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="app" id="app">
+      <section class="panel active" id="homePanel">
+        <div class="home-grid">
+          <div class="hero-card">
+            <div>
+              <div class="eyebrow">Kobun Sprint</div>
+              <h1 class="hero-title">古文単語を、<br />反射で見抜く。</h1>
+              <p class="hero-copy">
+                見出し語に合う意味を<strong>全部タップ</strong>して判定。<br />
+                制限時間つきのラウンドで、<strong>誤答語は自動で苦手化</strong>。次回以降も重点出題されます。
+              </p>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-tile"><span class="stat-label">収録語</span><span class="stat-value" id="statTotal">330</span></div>
+              <div class="stat-tile"><span class="stat-label">学習済み</span><span class="stat-value" id="statStudied">0</span></div>
+              <div class="stat-tile"><span class="stat-label">定着語</span><span class="stat-value" id="statMastered">0</span></div>
+              <div class="stat-tile"><span class="stat-label">苦手語</span><span class="stat-value" id="statWeak">0</span></div>
+            </div>
+            <div class="hero-footer">
+              <span class="hero-pill">単語数に応じて 4択 / 6択 / 8択</span>
+              <span class="hero-pill">タップ・キーボード両対応</span>
+              <span class="hero-pill">結果は端末内に保存</span>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="side-card">
+              <h2 class="card-title">出題モード</h2>
+              <p class="card-subtitle">初回はスマート推奨。未学習と苦手語を混ぜて、テンポよく回します。</p>
+              <div class="mode-grid" id="modeGrid">
+                <button class="mode-btn active" data-mode="smart">
+                  <span class="mode-name">スマート</span>
+                  <span class="mode-note">未学習 + 苦手語を優先。最初の1周に最適。</span>
+                </button>
+                <button class="mode-btn" data-mode="weak">
+                  <span class="mode-name">苦手特訓</span>
+                  <span class="mode-note">誤答・時間切れの語を重点反復。</span>
+                </button>
+                <button class="mode-btn" data-mode="shuffle">
+                  <span class="mode-name">ランダム</span>
+                  <span class="mode-note">全330語から均等にシャッフル。</span>
+                </button>
+                <button class="mode-btn" data-mode="streak">
+                  <span class="mode-name">連勝チャレンジ</span>
+                  <span class="mode-note">短時間で高密度。連続正解を伸ばす。</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="side-card">
+              <h2 class="card-title">ラウンド数</h2>
+              <p class="card-subtitle">誤答語はセッション中にも復習ラウンドへ回ります。</p>
+              <div class="count-grid" id="countGrid">
+                <button class="count-btn" data-count="10">10問</button>
+                <button class="count-btn active" data-count="15">15問</button>
+                <button class="count-btn" data-count="25">25問</button>
+              </div>
+              <div class="launch-row">
+                <button class="primary-btn" id="startBtn">セッション開始</button>
+                <button class="ghost-btn" id="resetStatsBtn">記録をリセット</button>
+              </div>
+              <p class="small-note">
+                1意味の語は4択、2〜3意味は6択、4意味以上は8択。<br />
+                すべての正しい意味を選択したときのみ正解です。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="quizPanel">
+        <div class="quiz-layout">
+          <div class="quiz-card">
+            <div class="quiz-topbar">
+              <div class="meter-strip">
+                <span class="badge" id="sessionModeBadge">SMART MODE</span>
+                <span class="badge" id="progressBadge">1 / 15</span>
+                <span class="badge" id="streakBadge">連勝 0</span>
+              </div>
+              <div class="timer-chip" id="timerChip">
+                <div class="timer-ring" id="timerRing"><span class="timer-value" id="timerValue">15</span></div>
+                <div class="timer-label"><strong id="timerLabel">15秒</strong><span id="timerCaption">選び終えたら判定</span></div>
+              </div>
+            </div>
+
+            <div class="word-panel" id="wordPanel">
+              <div class="question-label">Pick Every Correct Meaning</div>
+              <h2 class="word-title" id="wordTitle">おどろく②</h2>
+              <div class="word-meta" id="wordMeta">意味数に応じて正答数が変わります。</div>
+            </div>
+
+            <div class="choices" id="choices"></div>
+
+            <div class="controls">
+              <div class="controls-left">
+                <button class="ghost-btn" id="clearBtn">選択をリセット</button>
+              </div>
+              <div class="controls-right">
+                <button class="next-btn hidden" id="nextBtn">次へ</button>
+                <button class="submit-btn" id="submitBtn" disabled>判定する</button>
+              </div>
+            </div>
+
+            <div class="feedback-box empty" id="feedbackBox">
+              <div class="helper-text">語の末尾の①②③は意味数のヒントです。該当する意味をすべて選んでください。</div>
+            </div>
+          </div>
+
+          <div class="quiz-card">
+            <div class="insight-list">
+              <div class="insight-card">
+                <h3>このゲームのコツ</h3>
+                <p>意味が複数ある語は、ひとつでも取りこぼすと不正解。似た意味の選択肢ほど優先して見比べると安定します。</p>
+              </div>
+              <div class="insight-card">
+                <h3>苦手語の扱い</h3>
+                <p>誤答・時間切れの語は自動で弱点記録。セッション後の「苦手特訓」で繰り返し復習できます。</p>
+              </div>
+              <div class="insight-card">
+                <h3>操作</h3>
+                <p>スマホはタップで選択、PCはクリックまたは数字キーで選択。Enterで判定、Rで選択リセット。</p>
+              </div>
+              <div class="insight-card">
+                <h3>判定ルール</h3>
+                <p id="ruleHint">今のラウンドは 6択中 2個正解 の形式です。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="summaryPanel">
+        <div class="summary-layout">
+          <div class="summary-card">
+            <div class="summary-hero">
+              <div>
+                <h2 class="summary-title">セッション完了</h2>
+                <p class="summary-copy" id="summaryCopy">反復が必要な語を自動で抽出しました。</p>
+              </div>
+              <div class="score-burst">
+                <span>Accuracy</span>
+                <strong id="summaryAccuracy">0%</strong>
+              </div>
+            </div>
+
+            <div class="summary-grid">
+              <div class="stat-tile"><span class="stat-label">正解</span><span class="stat-value" id="summaryCorrect">0</span></div>
+              <div class="stat-tile"><span class="stat-label">ミス</span><span class="stat-value" id="summaryWrong">0</span></div>
+              <div class="stat-tile"><span class="stat-label">時間切れ</span><span class="stat-value" id="summaryTimeout">0</span></div>
+              <div class="stat-tile"><span class="stat-label">最高連勝</span><span class="stat-value" id="summaryStreak">0</span></div>
+            </div>
+
+            <div class="summary-actions">
+              <button class="primary-btn" id="retryWeakBtn">苦手だけ復習する</button>
+              <button class="ghost-btn" id="retryModeBtn">同じ条件でもう一度</button>
+              <button class="ghost-btn" id="backHomeBtn">ホームへ戻る</button>
+            </div>
+          </div>
+
+          <div class="weak-card">
+            <h2 class="card-title">今回の要復習</h2>
+            <p class="card-subtitle">弱点スコアの高い順です。正解しても不安な語はこの一覧から目で見直せます。</p>
+            <div class="weak-list" id="weakList"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+
+  <script>
+    const RAW_DATA = [{"id": 1, "wordRaw": "おどろく②", "definitionRaw": "【驚く】\\n①(はっと)気づく\\n②(ふと)目を覚ます\\n\\nはっとする"}, {"id": 2, "wordRaw": "ののしる②", "definitionRaw": "①大騒ぎする\\n②評判になる\\n\\n大きな声で騒ぐ"}, {"id": 3, "wordRaw": "ねんず②", "definitionRaw": "【念ず】\\n①(心の中で)祈る\\n②がまんする\\n\\nじっと我慢する"}, {"id": 4, "wordRaw": "おぼゆ③", "definitionRaw": "【覚ゆ】\\n①(自然に)思われる\\n②似る\\n③思い出す\\n\\n思ふ+ゆ（自発）"}, {"id": 5, "wordRaw": "しのぶ②", "definitionRaw": "【忍ぶ】\\n①がまんする\\n②人目を避ける\\n\\n気づかれないようにする"}, {"id": 6, "wordRaw": "ながむ①", "definitionRaw": "【眺む】\\n①もの思いに沈む\\n\\nもの思い"}, {"id": 7, "wordRaw": "みゆ③", "definitionRaw": "【見ゆ】\\n①(自然と)見える\\n②姿を見せる\\n③(人から)見られる\\n\\n見る+ゆ（自発・受身）"}, {"id": 8, "wordRaw": "あふ①", "definitionRaw": "①結婚する\\n\\n男女が結ばれる"}, {"id": 9, "wordRaw": "ゐる②", "definitionRaw": "【居る】\\n①座る\\n②〜ている"}, {"id": 10, "wordRaw": "ありく②", "definitionRaw": "【歩く】\\n①動き回る\\n②(〜して)まわる\\n③(〜し)続ける\\n\\nあちこち移動する"}, {"id": 11, "wordRaw": "あく②", "definitionRaw": "【飽く】\\n①満足する\\n②満ち足りない\\n\\n満足！"}, {"id": 12, "wordRaw": "うつくし②", "definitionRaw": "①かわいらしい\\n②立派だ"}, {"id": 13, "wordRaw": "かなし①", "definitionRaw": "①いとしい、かわいい\\n\\n切ない"}, {"id": 14, "wordRaw": "いみじ③", "definitionRaw": "①〔連用形「いみじく」「いみじう」の形で〕とても\\n②とてもすばらしい\\n③とても悲しい\\n\\n並外れてすごい"}, {"id": 15, "wordRaw": "をかし③", "definitionRaw": "①趣がある\\n②美しい\\n③滑稽だ\\n\\nすてき！"}, {"id": 16, "wordRaw": "よし（形容詞）②", "definitionRaw": "①よい\\n②身分が高く教養がある\\n\\nよし→よろし→わろし→あし"}, {"id": 17, "wordRaw": "あやし④", "definitionRaw": "【奇し・怪し/賤し】\\n①不思議だ\\n②けしからん\\n③身分が低い\\n④粗末だ\\n\\n理解を超えた不思議さ"}, {"id": 18, "wordRaw": "おとなし③", "definitionRaw": "【大人し】\\n①大人らしい\\n②年配だ\\n③思慮分別がある\\n\\n幼稚でない大人らしさ"}, {"id": 19, "wordRaw": "ゆかし①", "definitionRaw": "①見たい、知りたい\\n\\n動詞「行く」が形容詞化した語\\n行ってみたいと心ひかれる"}, {"id": 20, "wordRaw": "おぼつかなし③", "definitionRaw": "①ぼんやりしている\\n②気がかりだ\\n③待ち遠しい\\n\\nぼんやりしていてつかみどころがない状態\\n気になる"}, {"id": 21, "wordRaw": "ありがたし②", "definitionRaw": "【有り難し】\\n①めったにない\\n②（めったにないほど）立派だ\\n\\n有り+難し"}, {"id": 22, "wordRaw": "めでたし①", "definitionRaw": "①すばらしい\\n\\n「愛で甚し」\\n「大いに賞賛すべき様子だ」"}, {"id": 23, "wordRaw": "くちをし①", "definitionRaw": "【口惜し】\\n①残念だ\\n\\nがっかり"}, {"id": 24, "wordRaw": "うし①", "definitionRaw": "【憂し】\\n①つらい\\n\\n憂鬱な気分"}, {"id": 25, "wordRaw": "わびし②", "definitionRaw": "【侘びし】\\n①つらい\\n②興ざめだ\\n\\nやりきれない"}, {"id": 26, "wordRaw": "あはれなり①", "definitionRaw": "①心底しみじみと感じられる\\n\\nじーんとした感動"}, {"id": 27, "wordRaw": "おろかなり②", "definitionRaw": "【疎かなり】\\n①おろそかだ\\n②〔「言ふも」「言へば」に続けて〕言葉では言い尽くせない\\n\\nいい加減"}, {"id": 28, "wordRaw": "ねんごろなり②", "definitionRaw": "【懇ろなり】\\n①熱心だ\\n②親しい\\n\\n心を込めた熱心さ"}, {"id": 29, "wordRaw": "つれづれなり②", "definitionRaw": "【徒然なり】\\n①(することもなく)退屈だ\\n②しんみりともの寂しい\\n\\n語源は「連れ連れ」＝同じ状態の連続\\n単調で退屈だ"}, {"id": 30, "wordRaw": "いたづらなり②", "definitionRaw": "【徒らなり】\\n①むだだ\\n②手持ちぶさたで暇だ\\n\\nむなしい"}, {"id": 31, "wordRaw": "としごろ①", "definitionRaw": "【年ごろ】\\n①長年\\n\\n「年」の流れ"}, {"id": 32, "wordRaw": "かたち①", "definitionRaw": "【形・容貌】\\n①容貌\\n\\n人の顔の形"}, {"id": 33, "wordRaw": "かげ②", "definitionRaw": "【影】\\n①光\\n②姿\\n\\n光り輝くもの"}, {"id": 34, "wordRaw": "ほい①", "definitionRaw": "【本意】\\n①かねてからの願い\\n\\n本来の意志"}, {"id": 35, "wordRaw": "ものがたり②", "definitionRaw": "【物語】\\n①話\\n②物語\\n\\nおしゃべり"}, {"id": 36, "wordRaw": "ふみ②", "definitionRaw": "【文・書】\\n①手紙\\n②漢詩、漢籍"}, {"id": 37, "wordRaw": "ほど④", "definitionRaw": "【程】\\n①〔時間の場合〕時\\n②〔空間の場合〕あたり\\n③〔人間の場合〕身分\\n④〔広く一般に〕様子\\n\\nいろいろな「ほど」"}, {"id": 38, "wordRaw": "なさけ③", "definitionRaw": "【情け】\\n①思いやり\\n②男女間の情愛\\n③情緒を解する心\\n\\nすてきな心"}, {"id": 39, "wordRaw": "ちぎり③", "definitionRaw": "【契り】\\n①約束\\n②宿縁\\n③逢瀬"}, {"id": 40, "wordRaw": "けしき③", "definitionRaw": "【気色】\\n①様子\\n②機嫌\\n③思い\\n\\n目に見えるものの様子"}, {"id": 41, "wordRaw": "いと②", "definitionRaw": "①とても\\n②〔下に打消を伴って〕たいして(〜ない)"}, {"id": 42, "wordRaw": "あまた①", "definitionRaw": "①たくさん\\n\\nあまるほどたくさん"}, {"id": 43, "wordRaw": "げに①", "definitionRaw": "①なるほど\\n\\n納得した気持ち"}, {"id": 44, "wordRaw": "なほ①", "definitionRaw": "①やはり\\n\\nやっぱり"}, {"id": 45, "wordRaw": "やがて②", "definitionRaw": "①そのまま\\n②すぐに\\n\\n即"}, {"id": 46, "wordRaw": "やうやう①", "definitionRaw": "①だんだん\\n\\n少しずつ変化するようす\\n「漸く」のウ音便"}, {"id": 47, "wordRaw": "え〜打消①", "definitionRaw": "①〜できない\\n\\n不可能"}, {"id": 48, "wordRaw": "な〜そ①", "definitionRaw": "①〜(する)な\\n\\n禁止"}, {"id": 49, "wordRaw": "さらに〜打消①", "definitionRaw": "①まったく〜ない\\n\\n全部否定"}, {"id": 50, "wordRaw": "いかで\\nいかでか③", "definitionRaw": "①〔疑問〕どうして（〜か）\\n②〔反語〕どうにかして（〜か、いや、〜ない）\\n③〔願望〕どうにかして（〜たい・〜てほしい・〜よう）"}, {"id": 51, "wordRaw": "にほふ①", "definitionRaw": "【匂ふ】\\n①美しく照り映える\\n\\n視覚的に美しい\\n「丹（に）」＝赤が映える視覚的な美しさを表す語"}, {"id": 52, "wordRaw": "うつろふ②", "definitionRaw": "【移ろふ】\\n①色が変わる\\n②移る\\n\\n色の変化・心の変化"}, {"id": 53, "wordRaw": "いぬ②", "definitionRaw": "【往ぬ・去ぬ】\\n①行く\\n②(時が)過ぎ去る\\n\\n行ってしまう"}, {"id": 54, "wordRaw": "あそぶ①", "definitionRaw": "【遊ぶ】\\n①管弦を楽しむ\\n\\n音楽を楽しむ"}, {"id": 55, "wordRaw": "めづ②", "definitionRaw": "【愛づ】\\n①感嘆する\\n②愛する"}, {"id": 56, "wordRaw": "ならふ②", "definitionRaw": "【慣らふ・馴らふ】\\n①慣れる\\n②親しむ"}, {"id": 57, "wordRaw": "かしづく②", "definitionRaw": "①大切に養育する\\n②大切に世話をする"}, {"id": 58, "wordRaw": "たのむ②", "definitionRaw": "【頼む】\\n①〔四段〕あてにする\\n②〔下二段〕あてにさせる"}, {"id": 59, "wordRaw": "まもる①", "definitionRaw": "【守る】\\n①見つめる\\n\\n「目守る」＝見る状態を保つ"}, {"id": 60, "wordRaw": "きこゆ③", "definitionRaw": "【聞こゆ】\\n①聞こえる\\n②世間に知られる\\n③理解できる\\n\\n聞く＋ゆ（自発）"}, {"id": 61, "wordRaw": "おこす①", "definitionRaw": "①よこす\\n\\nおこす⇔やる"}, {"id": 62, "wordRaw": "まうく①", "definitionRaw": "【設く】\\n①準備する\\n\\nあらかじめ設ける"}, {"id": 63, "wordRaw": "いらふ①", "definitionRaw": "【答ふ】\\n①答える"}, {"id": 64, "wordRaw": "わたる②", "definitionRaw": "【渡る】\\n①行く\\n②ずっと(〜する)、一面に(〜する)\\n\\n移動する"}, {"id": 65, "wordRaw": "ぐす③", "definitionRaw": "【具す】\\n①連れる\\n②連れ立つ\\n③添える\\n\\n一緒に"}, {"id": 66, "wordRaw": "とぶらふ③", "definitionRaw": "【訪ふ・弔ふ】\\n①訪れる\\n②見舞う\\n③弔問する、供養する"}, {"id": 67, "wordRaw": "ものす②", "definitionRaw": "【物す】\\n①いる\\n②行く、来る\\n\\n「あり」「行く」「来」の代わり"}, {"id": 68, "wordRaw": "わななく①", "definitionRaw": "①ふるえる\\n\\nぶるぶる・わなわな"}, {"id": 69, "wordRaw": "わづらふ③", "definitionRaw": "①思い悩む\\n②苦労する\\n③〜するのに困る\\n\\n心身の苦痛"}, {"id": 70, "wordRaw": "まどふ②", "definitionRaw": "【惑ふ】\\n①心が乱れる、途方に暮れる\\n②〔動詞の連用形に付いて〕ひどく(〜する)\\n\\nパニック"}, {"id": 71, "wordRaw": "かづく②", "definitionRaw": "【被く】\\n①〔四段〕(ほうびを)いただく\\n②〔下二段〕(ほうびを)与える"}, {"id": 72, "wordRaw": "うす②", "definitionRaw": "【失す】\\n①消える\\n②亡くなる\\n\\n死ぬ"}, {"id": 73, "wordRaw": "おこなふ①", "definitionRaw": "【行ふ】\\n①仏道修行をする"}, {"id": 74, "wordRaw": "おもしろし②", "definitionRaw": "①すばらしい\\n②興趣がある\\n\\n明るい・晴れやか"}, {"id": 75, "wordRaw": "あらまほし①", "definitionRaw": "①理想的だ"}, {"id": 76, "wordRaw": "やむごとなし②", "definitionRaw": "①高貴だ\\n②この上ない\\n\\n最高だ\\n「止む事無し」＝これでよしとは済ませない→放っておけない"}, {"id": 77, "wordRaw": "ゆゆし③", "definitionRaw": "①不吉だ\\n②すばらしい\\n③はなはだしい\\n\\n普通とかけ離れている"}, {"id": 78, "wordRaw": "かしこし③", "definitionRaw": "【畏し・恐し／賢し】\\n①おそれ多い\\n②すばらしい\\n③非常に\\n\\nおそれ多いほどすごい"}, {"id": 79, "wordRaw": "うるはし②", "definitionRaw": "①端正だ\\n②親しい\\n\\n端正な美"}, {"id": 80, "wordRaw": "はかなし②", "definitionRaw": "①頼りない\\n②ちょっとした\\n\\n「はか」＝はかるに値する量、頼りにできるもの"}, {"id": 81, "wordRaw": "はかばかし②", "definitionRaw": "①しっかりしている\\n②はっきりしている\\n\\nしっかり、ちゃんと"}, {"id": 82, "wordRaw": "やさし②", "definitionRaw": "①優美だ\\n②けなげだ"}, {"id": 83, "wordRaw": "いはけなし①", "definitionRaw": "①幼い"}, {"id": 84, "wordRaw": "かたはらいたし③", "definitionRaw": "①見苦しい\\n②気の毒だ\\n③恥ずかしい\\n\\nいたたまれない\\n「傍ら痛し」＝そこに居続けられないほど"}, {"id": 85, "wordRaw": "こころもとなし③", "definitionRaw": "【心もとなし】\\n①待ち遠しい\\n②不安だ\\n③はっきりしない\\n\\n気持ちばかりが先走る"}, {"id": 86, "wordRaw": "いとほし②", "definitionRaw": "①かわいそうだ\\n②かわいい\\n\\n気の毒\\n動詞「厭ふ」が形容詞化「見ていてつらく、目をそむけたい」"}, {"id": 87, "wordRaw": "あさまし③", "definitionRaw": "①驚きあきれるほどだ\\n②あきれるほどひどい\\n③情けない\\n\\nあ然！\\n「えっ、ウソだろ」と思う意"}, {"id": 88, "wordRaw": "いたし③", "definitionRaw": "①〔連用形「いたく」「いたう」の形で〕たいそう\\n②〔打消を伴って〕それほど(〜ない)\\n③すばらしい\\n\\n痛いほど激しい"}, {"id": 89, "wordRaw": "つれなし③", "definitionRaw": "①平然としている\\n②冷淡だ\\n③なんの変化もない"}, {"id": 90, "wordRaw": "あいなし③", "definitionRaw": "①筋違いだ\\n②つまらない\\n③〔連用形「あいなく」「あいなう」の形で〕むやみに"}, {"id": 91, "wordRaw": "あぢきなし②", "definitionRaw": "①どうにもならない\\n②つまらない"}, {"id": 92, "wordRaw": "さがなし②", "definitionRaw": "①性質がよくない\\n②いたずらだ\\n\\nよい性＝性質が無い"}, {"id": 93, "wordRaw": "すさまじ②", "definitionRaw": "①興ざめだ\\n②殺風景だ\\n\\n不調和でしらける"}, {"id": 94, "wordRaw": "いふかひなし③", "definitionRaw": "【言ふ甲斐無し】\\n①どうしようもない\\n②取るに足りない\\n③ひどい\\n\\n話にならない\\n「言うだけの価値がない」"}, {"id": 95, "wordRaw": "よしなし③", "definitionRaw": "①関係がない\\n②方法がない\\n③つまらない\\n\\n「由」（＝物事の拠り所）が無い"}, {"id": 96, "wordRaw": "びんなし②", "definitionRaw": "【便無し】\\n①都合が悪い\\n②困ったことだ\\n\\n「便」＝都合無し\\nまずい"}, {"id": 97, "wordRaw": "さうざうし①", "definitionRaw": "①物足りない\\n\\n物足りなくて心寂しい\\n漢語「索々」＝楽しくない→あるべきものがない空虚感"}, {"id": 98, "wordRaw": "むつかし③", "definitionRaw": "①うっとうしい\\n②わずらわしい\\n③むさくるしい\\n\\n不快だ\\n「むずかる」の古い形「むつかる」と同源の語"}, {"id": 99, "wordRaw": "あてなり②", "definitionRaw": "【貴なり】\\n①身分が高い\\n②上品だ、優美だ\\n\\n高貴で上品"}, {"id": 100, "wordRaw": "きよらなり①", "definitionRaw": "【清らなり】\\n①美しい\\n\\n最高美"}, {"id": 101, "wordRaw": "さらなり①", "definitionRaw": "【更なり】\\n①（いまさら）言うまでもない\\n\\n言うといまさらだ"}, {"id": 102, "wordRaw": "あらはなり②", "definitionRaw": "【顕はなり】\\n①まる見えだ\\n②明らかだ"}, {"id": 103, "wordRaw": "あからさまなり①", "definitionRaw": "①ちょっとの間だ"}, {"id": 104, "wordRaw": "かたくななり②", "definitionRaw": "【頑ななり】\\n①情趣を解さない\\n②見苦しい\\n\\n頑固＝無教養＝見苦しい"}, {"id": 105, "wordRaw": "あだなり②", "definitionRaw": "【徒なり】\\n①はかない\\n②不誠実だ\\n\\n表面ばかりで実がない"}, {"id": 106, "wordRaw": "すずろなり③", "definitionRaw": "【漫ろなり】\\n①あてもない\\n②思いがけない\\n③むやみだ\\n\\n漫然としている\\n明確な理由や目的もなく物事が進んでいくことを表す"}, {"id": 107, "wordRaw": "むげなり②", "definitionRaw": "【無下なり】\\n①まったくひどい\\n②むやみに、まったく(〜ない)\\n\\n最低"}, {"id": 108, "wordRaw": "おほやけ②", "definitionRaw": "【公】\\n①朝廷\\n②天皇\\n\\n「大宅（おほやけ）＝大きな建物」がもとの意"}, {"id": 109, "wordRaw": "きは①", "definitionRaw": "【際】\\n①身分"}, {"id": 110, "wordRaw": "しるし③", "definitionRaw": "【験・徴】\\n①ご利益\\n②効果\\n③前兆\\n\\n神仏のご利益"}, {"id": 111, "wordRaw": "ことわり①", "definitionRaw": "【理】\\n①道理\\n\\n物事の筋道\\n「事割り」の意"}, {"id": 112, "wordRaw": "ためし②", "definitionRaw": "【例】\\n①例\\n②語り草\\n\\n「うまくいったためしがない」と言うときの「ためし」"}, {"id": 113, "wordRaw": "わざ②", "definitionRaw": "【業】\\n①仏事\\n②こと\\n\\n行為"}, {"id": 114, "wordRaw": "おぼえ②", "definitionRaw": "【覚え】\\n①評判\\n②寵愛(をうけること)\\n\\n人からよく思われること"}, {"id": 115, "wordRaw": "ここち②", "definitionRaw": "【心地】\\n①気持ち\\n②病気\\n\\n気分"}, {"id": 116, "wordRaw": "うつつ②", "definitionRaw": "【現】\\n①現実\\n②正気\\n\\n夢か、現か"}, {"id": 117, "wordRaw": "つとめて②", "definitionRaw": "①早朝\\n②翌朝"}, {"id": 118, "wordRaw": "つごもり①", "definitionRaw": "【晦・晦日】\\n①月末"}, {"id": 119, "wordRaw": "ついで②", "definitionRaw": "①順序\\n②機会\\n\\n時の順序"}, {"id": 120, "wordRaw": "たより④", "definitionRaw": "【頼り・便り】\\n①頼れるもの\\n②縁故\\n③便宣\\n④機会\\n\\nこの世を生きていく上で頼りになる人や物事"}, {"id": 121, "wordRaw": "こころざし②", "definitionRaw": "【志】\\n①愛情\\n②贈り物\\n\\n「心が指す」＝心がある方向を指して向かって行くこと"}, {"id": 122, "wordRaw": "よし⑤", "definitionRaw": "【由】\\n①縁\\n②方法\\n③風情\\n④事情\\n⑤そぶり\\n\\n動詞「寄す」の連用形が名詞化した語\\n物事を核心に近寄せ、関係づけるという原義から、\\n物事の拠り所の意を表す"}, {"id": 123, "wordRaw": "よろづ②", "definitionRaw": "【万】\\n①さまざまなこと\\n②すべて"}, {"id": 124, "wordRaw": "て②", "definitionRaw": "【手】\\n①筆跡\\n②演奏法"}, {"id": 125, "wordRaw": "ざえ①", "definitionRaw": "【才】\\n①学問\\n\\n「才」は努力して身につける才能のこと"}, {"id": 126, "wordRaw": "おのづから③", "definitionRaw": "【自ら】\\n①自然に\\n②偶然に\\n③〔仮定・推量の表現を伴って〕万一"}, {"id": 127, "wordRaw": "すなはち①", "definitionRaw": "【即ち・則ち】\\n①すぐに"}, {"id": 128, "wordRaw": "とく②", "definitionRaw": "【疾く】\\n①早く\\n②すでに\\n\\n疾風のように"}, {"id": 129, "wordRaw": "いつしか②", "definitionRaw": "①早く(〜したい・してほしい)\\n②早くも\\n\\n一刻も早く！"}, {"id": 130, "wordRaw": "なべて②", "definitionRaw": "①総じて\\n②普通\\n\\n一般\\n「同列に並べて」が原義"}, {"id": 131, "wordRaw": "いとど①", "definitionRaw": "①いっそう\\n\\n程度の進行\\n「いと」を二つ重ねた「いといと」から生まれた語"}, {"id": 132, "wordRaw": "かく①", "definitionRaw": "①このように\\n\\n「かくかく」しかじか"}, {"id": 133, "wordRaw": "とかく①", "definitionRaw": "①あれこれと\\n\\n「と」＋「かく」"}, {"id": 134, "wordRaw": "しか①", "definitionRaw": "①そのように\\n\\nかくかく「しかじか」"}, {"id": 135, "wordRaw": "さ①", "definitionRaw": "①そう"}, {"id": 136, "wordRaw": "さばかり②", "definitionRaw": "①その程度\\n②非常に\\n\\nどの程度？"}, {"id": 137, "wordRaw": "さながら②", "definitionRaw": "①そのまま\\n②全部"}, {"id": 138, "wordRaw": "つゆ〜打消①", "definitionRaw": "①少しも〜ない\\n\\n全部否定"}, {"id": 139, "wordRaw": "よも〜じ①", "definitionRaw": "①まさか〜ないだろう"}, {"id": 140, "wordRaw": "なかなか①", "definitionRaw": "①かえって\\n\\n「中中」＝中途半端で不十分な状態なら、かえってしない方がよい、の意"}, {"id": 141, "wordRaw": "さすがに①", "definitionRaw": "①そうはいってもやはり"}, {"id": 142, "wordRaw": "かつ②", "definitionRaw": "①一方では\\n②すぐに\\n\\n二つのことの並行・連鎖"}, {"id": 143, "wordRaw": "など\\nなどか②", "definitionRaw": "①〔疑問〕どうして(〜か)\\n②〔反語〕どうして(〜か、いや、〜ではない)\\n\\nなぜ？"}, {"id": 144, "wordRaw": "なでふ\\nなんでふ②", "definitionRaw": "①〔疑問〕どうして(〜か)\\n②〔反語〕どうして(〜か、いや、〜.ではない)\\n\\nなぜ？\\n「何と言ふ」→「なにてふ」→「なんでふ」→「なでふ」"}, {"id": 145, "wordRaw": "ありし\\nありつる②", "definitionRaw": "①〔「ありし」の形で〕かつての\\n②〔「ありつる」の形で〕さっきの\\n\\n遠い過去・近い過去"}, {"id": 146, "wordRaw": "れいの②", "definitionRaw": "【例の】\\n①いつものように\\n②いつもの"}, {"id": 147, "wordRaw": "おとにきく②", "definitionRaw": "【音に聞く】\\n①うわさに聞く\\n②評判が高い\\n\\n「音」は「うわさ」「評判」の意"}, {"id": 148, "wordRaw": "いかがはせむ②", "definitionRaw": "①〔疑問〕どうしようか\\n②〔反語〕どうしようもない"}, {"id": 149, "wordRaw": "さるべき③", "definitionRaw": "①適当な\\n②そうなるはずの\\n③立派な\\n\\nそれが適当か当然だ"}, {"id": 150, "wordRaw": "いざたまへ①", "definitionRaw": "【いざ給へ】\\n①さあ、(一緒に)いらっしゃい"}, {"id": 151, "wordRaw": "しる①", "definitionRaw": "【領る】\\n①領有する"}, {"id": 152, "wordRaw": "あくがる③", "definitionRaw": "①さまよい出る\\n②宙にさまよう\\n③うわの空になる"}, {"id": 153, "wordRaw": "やすらふ②", "definitionRaw": "【休らふ】\\n①立ち止まる、とどまる\\n②ためらう\\n\\nぐずぐずする"}, {"id": 154, "wordRaw": "うちいづ①", "definitionRaw": "【うち出づ】\\n①口に出して言う"}, {"id": 155, "wordRaw": "やつす①", "definitionRaw": "①地味な格好にする"}, {"id": 156, "wordRaw": "おとなふ②", "definitionRaw": "【音なふ】\\n①音を立てる\\n②手紙を出す、訪れる"}, {"id": 157, "wordRaw": "そばむ①", "definitionRaw": "【側む】\\n①横を向く"}, {"id": 158, "wordRaw": "かたらふ①", "definitionRaw": "【語らふ】\\n①交際する\\n\\n親密に言葉を交わす"}, {"id": 159, "wordRaw": "すむ①", "definitionRaw": "【住む】\\n①(男が女のもとに)通う"}, {"id": 160, "wordRaw": "さはる①", "definitionRaw": "【障る】\\n①妨げられる\\n\\n「差し障り」の動詞形\\nしようとすることが邪魔されること"}, {"id": 161, "wordRaw": "あるじす①", "definitionRaw": "【饗す】\\n①客にごちそうする\\n\\nおもてなし"}, {"id": 162, "wordRaw": "もてなす③", "definitionRaw": "①振る舞う\\n②取り扱う\\n③もてはやす\\n\\nわが身は振る舞い、ほかは扱う"}, {"id": 163, "wordRaw": "きようず①", "definitionRaw": "【興ず】\\n①おもしろがる\\n\\n「興」に乗る"}, {"id": 164, "wordRaw": "およすぐ②", "definitionRaw": "①成長する\\n②大人びる\\n\\n「およ」は「老よ」"}, {"id": 165, "wordRaw": "ときめく①", "definitionRaw": "【時めく】\\n①寵愛を受ける\\n\\n今を「ときめく」"}, {"id": 166, "wordRaw": "さる②", "definitionRaw": "【避る】\\n①避ける\\n②断る"}, {"id": 167, "wordRaw": "こうず①", "definitionRaw": "【困ず】\\n①疲れる\\n\\n「困」は「疲労困憊」の「困」"}, {"id": 168, "wordRaw": "かきくらす①", "definitionRaw": "【掻き暗す】\\n①悲しみが心を暗くする\\n\\n真っ暗！"}, {"id": 169, "wordRaw": "うれふ①", "definitionRaw": "【憂ふ・愁ふ】\\n①訴える"}, {"id": 170, "wordRaw": "かこつ①", "definitionRaw": "【託つ】\\n①不平を言う"}, {"id": 171, "wordRaw": "いたはる③", "definitionRaw": "【労る】\\n①病気になる\\n②骨を折る\\n③世話をする\\n\\nぐったりする"}, {"id": 172, "wordRaw": "ためらふ②", "definitionRaw": "①静養する\\n②気を静める\\n\\nぐっと抑える"}, {"id": 173, "wordRaw": "おこたる①", "definitionRaw": "【怠る】\\n①病気がよくなる\\n\\n勢いが停滞・失速すること"}, {"id": 174, "wordRaw": "なやむ①", "definitionRaw": "【悩む】\\n①病気で苦しむ"}, {"id": 175, "wordRaw": "おくる①", "definitionRaw": "【後る・遅る】\\n①先立たれる\\n\\n死に後れる"}, {"id": 176, "wordRaw": "したたむ③", "definitionRaw": "【認む】\\n①処理する\\n②用意する\\n③取り締まる\\n\\nちゃんと、きちんと"}, {"id": 177, "wordRaw": "あたらし①", "definitionRaw": "【惜し】\\n①もったいない"}, {"id": 178, "wordRaw": "かたじけなし②", "definitionRaw": "①おそれ多い\\n②ありがたい\\n\\nもったいない\\n恐縮する気持ち"}, {"id": 179, "wordRaw": "をこがまし①", "definitionRaw": "【痴がまし】\\n①愚かしい\\n\\nばかっぽい"}, {"id": 180, "wordRaw": "こころにくし①", "definitionRaw": "【心憎し】\\n①奥ゆかしい\\n\\n奥が深い"}, {"id": 181, "wordRaw": "さかし④", "definitionRaw": "【賢し】\\n①かしこい\\n②気が利いている\\n③気がしっかりしている\\n④こざかしい\\n\\n判断力がある"}, {"id": 182, "wordRaw": "すきずきし②", "definitionRaw": "【好き好きし】\\n①好色めいている\\n②風流だ"}, {"id": 183, "wordRaw": "なまめかし①", "definitionRaw": "①優美だ\\n\\nエレガント\\n「色っぽい」ことではなく、みずみずしい美しさ"}, {"id": 184, "wordRaw": "いまめかし②", "definitionRaw": "【今めかし】\\n①現代風だ\\n②華やかだ\\n\\n今風な感じ"}, {"id": 185, "wordRaw": "しどけなし②", "definitionRaw": "①無造作だ\\n②乱れている\\n\\nラフな感じ"}, {"id": 186, "wordRaw": "つきづきし①", "definitionRaw": "①似つかわしい\\n\\n「付き」は「fit」\\n「付き付きし」"}, {"id": 187, "wordRaw": "なつかし①", "definitionRaw": "①好ましい\\n\\n今接しているものに好感を持った時も言う"}, {"id": 188, "wordRaw": "めやすし①", "definitionRaw": "【目安し】\\n①見苦しくない\\n\\n見て感じがよい"}, {"id": 189, "wordRaw": "こころやすし②", "definitionRaw": "【心安し】\\n①安心だ\\n②気楽だ\\n\\n心が波立っていない"}, {"id": 190, "wordRaw": "うしろめたし①", "definitionRaw": "【後ろめたし】\\n①心配だ\\n\\n気がかり"}, {"id": 191, "wordRaw": "こころぐるし②", "definitionRaw": "【心苦し】\\n①つらい\\n②気の毒だ\\n\\n心が痛い"}, {"id": 192, "wordRaw": "まばゆし②", "definitionRaw": "①見ていられない\\n②恥ずかしい\\n\\n目を伏せたい"}, {"id": 193, "wordRaw": "はづかし①", "definitionRaw": "【恥ずかし】\\n①(こちらが気後れするほど)立派だ\\n\\n相手が立派すぎる"}, {"id": 194, "wordRaw": "つたなし④", "definitionRaw": "【拙し】\\n①下手だ\\n②劣っている\\n③下品だ\\n④不運だ"}, {"id": 195, "wordRaw": "こちたし①", "definitionRaw": "①仰々しい\\n\\n「事甚し」が変化してできた語\\n物事が度を超えてうるさく感じられるほどの様子"}, {"id": 196, "wordRaw": "さうなし①", "definitionRaw": "【左右無し】\\n①ためらわない、無造作だ\\n\\nストレート"}, {"id": 197, "wordRaw": "ところせし③", "definitionRaw": "【所狭し】\\n①いっぱいだ\\n②窮屈だ\\n③おおげさだ"}, {"id": 198, "wordRaw": "つつまし①", "definitionRaw": "【慎まし】\\n①気がひける\\n\\n引っ込み思案"}, {"id": 199, "wordRaw": "まさなし②", "definitionRaw": "①よくない\\n②見苦しい\\n\\n「まさ」は期待・予想されるさまの意で、それが「無し」"}, {"id": 200, "wordRaw": "ねたし①", "definitionRaw": "【妬し】\\n①しゃくにさわる\\n\\n癪\\n「ちぇっ」と舌打ちしたくなる気持ち"}, {"id": 201, "wordRaw": "まだし②", "definitionRaw": "①まだ時期が早い\\n②不十分だ"}, {"id": 202, "wordRaw": "はしたなし④", "definitionRaw": "①不釣り合いだ\\n②無愛想だ\\n③はげしい\\n④きまりが悪い\\n\\n不調和\\n「はした」はどっちつかずの浮いた状態のこと\\n「なし」は「無し」ではなく形容詞を作る接尾語\\n調和の欠けた突出した様子とその時の気持ち"}, {"id": 203, "wordRaw": "わりなし④", "definitionRaw": "①道理に合わない\\n②並々ではない\\n③耐えがたい\\n④しかたがない\\n\\n無茶苦茶\\n「わり」は「ことわり」＝道理の「わり」"}, {"id": 204, "wordRaw": "ずちなし①", "definitionRaw": "【術無し】\\n①どうしようもない\\n\\nお手上げ"}, {"id": 205, "wordRaw": "あへなし①", "definitionRaw": "①あっけない\\n\\n拍子抜け"}, {"id": 206, "wordRaw": "くまなし②", "definitionRaw": "【隅無し】\\n①暗い所がない\\n②行き届かないところがない\\n\\n全面照射！"}, {"id": 207, "wordRaw": "めざまし①", "definitionRaw": "①気にくわない\\n\\n目がつり上がる"}, {"id": 208, "wordRaw": "こころづきなし①", "definitionRaw": "【心付きなし】\\n①気に入らない\\n\\n心に「fit」しない"}, {"id": 209, "wordRaw": "ゆくりなし①", "definitionRaw": "①突然だ\\n\\n「ゆっくり」でない"}, {"id": 210, "wordRaw": "あつし①", "definitionRaw": "【篤し】\\n①病状が重い\\n\\n「危篤」の「篤」の意味"}, {"id": 211, "wordRaw": "あながちなり②", "definitionRaw": "【強ちなり】\\n①無理やりだ\\n②むやみだ\\n\\n「自分勝手だ」が原義"}, {"id": 212, "wordRaw": "なめげなり①", "definitionRaw": "①無礼だ\\n\\nなめている感じ"}, {"id": 213, "wordRaw": "なのめなり②", "definitionRaw": "並一通りだ\\nいい加減だ\\n\\n「なのめ」は今の「ななめ（斜め）」"}, {"id": 214, "wordRaw": "おぼろけなり②", "definitionRaw": "①並一通りだ\\n②並々ではない\\n\\nおぼろけならずとの混同が定着"}, {"id": 215, "wordRaw": "あやにくなり①", "definitionRaw": "①ひどい、はなはだしい\\n\\n「あや憎なり」"}, {"id": 216, "wordRaw": "まめやかなり③", "definitionRaw": "①まじめだ\\n②実生活向きだ\\n③本格的だ\\n\\n中身がある"}, {"id": 217, "wordRaw": "せちなり②", "definitionRaw": "【切なり】\\n①切実だ\\n②ひたすら\\n\\n「せち」は「切」"}, {"id": 218, "wordRaw": "よそなり①", "definitionRaw": "①無縁だ\\n\\n「よそ」は「outside」"}, {"id": 219, "wordRaw": "うちつけなり②", "definitionRaw": "①突然だ\\n②軽率だ\\n\\nぶっつけ本番"}, {"id": 220, "wordRaw": "とみなり②", "definitionRaw": "【頓なり】\\n①急だ\\n②すぐに\\n\\n頓＝「いきなり」「すばやい」"}, {"id": 221, "wordRaw": "みそかなり①", "definitionRaw": "【密かなり】\\n①ひそかだ\\n\\n「みそか」は「ひそか」"}, {"id": 222, "wordRaw": "こまやかなり③", "definitionRaw": "①心を込めている\\n②色が濃い\\n③繊細で美しい\\n\\n細やか・濃やか"}, {"id": 223, "wordRaw": "らうたげなり①", "definitionRaw": "①かわいらしい\\n\\nかよわくて守ってあげたい気になるものの様子"}, {"id": 224, "wordRaw": "いうなり①", "definitionRaw": "【優なり】\\n①優美だ\\n\\nエレガント"}, {"id": 225, "wordRaw": "うち②", "definitionRaw": "【内裏】\\n①宮中\\n②天皇\\n\\n「うち」は「内裏」、「内裏」は「天皇」"}, {"id": 226, "wordRaw": "うへ③", "definitionRaw": "【上】\\n①天皇\\n②奥様\\n③御座所\\n\\n「ミセス」もある！"}, {"id": 227, "wordRaw": "しな①", "definitionRaw": "【品】\\n①身分\\n②家柄\\n\\n「品」は「家柄」次第\\n土地の勾配や階段などの高低差の意が原義"}, {"id": 228, "wordRaw": "ふるさと③", "definitionRaw": "【古里】\\n①古都\\n②なじみのある土地\\n③実家、わが家\\n\\n以前の暮らしの中心地"}, {"id": 229, "wordRaw": "こころばへ③", "definitionRaw": "【心延へ】\\n①心遣い\\n②性格\\n③趣\\n\\n心がすっと動くこと"}, {"id": 230, "wordRaw": "ひま③", "definitionRaw": "【隙】\\n①すき間\\n②絶え間\\n③すき、機会\\n\\n空白"}, {"id": 231, "wordRaw": "ひがこと①", "definitionRaw": "【僻事】\\n①間違い"}, {"id": 232, "wordRaw": "とが②", "definitionRaw": "【咎・科】\\n①欠点\\n②罪\\n\\nおとがめ"}, {"id": 233, "wordRaw": "そらごと①", "definitionRaw": "【空言・虚言】\\n①嘘\\n\\n空っぽな言葉"}, {"id": 234, "wordRaw": "せうそこ②", "definitionRaw": "【消息】\\n①手紙\\n②訪問\\n\\n連絡"}, {"id": 235, "wordRaw": "くもゐ③", "definitionRaw": "【雲居】\\n①宮中\\n②天上\\n③遠く離れた場所\\n\\n雲よ。遠い雲よ。"}, {"id": 236, "wordRaw": "かしこまり③", "definitionRaw": "【畏まり】\\n①お礼\\n②お詫び\\n③謹慎\\n\\n感謝と謝罪\\n「かしこまる」＝つつしんで正座する"}, {"id": 237, "wordRaw": "よ\\nよのなか①", "definitionRaw": "【世・世の中】\\n①男女の仲\\n\\n人生は男女関係"}, {"id": 238, "wordRaw": "かぎり③", "definitionRaw": "【限り】\\n①(人生の)最期\\n②すべて\\n③だけ\\n\\nこれっきり"}, {"id": 239, "wordRaw": "ここら\\nそこら③", "definitionRaw": "①たくさん\\n\\n「あまた」と同じ"}, {"id": 240, "wordRaw": "かたみに①", "definitionRaw": "【互に】\\n①たがいに\\n\\n「かたみ」は「片身」"}, {"id": 241, "wordRaw": "わざと③", "definitionRaw": "①わざわざ\\n②特別に\\n③本格的な"}, {"id": 242, "wordRaw": "うたて①", "definitionRaw": "①いやなことに"}, {"id": 243, "wordRaw": "かねて②", "definitionRaw": "【予ねて】\\n①前もって\\n②〜前から"}, {"id": 244, "wordRaw": "やをら①", "definitionRaw": "①そっと\\n\\n物音を立てないように、静かに動作する様子"}, {"id": 245, "wordRaw": "よもすがら①", "definitionRaw": "【夜もすがら】\\n①一晩中\\n\\n「道すがら」の「すがら」と同じ。「〜の間・〜の間中」という意味"}, {"id": 246, "wordRaw": "ゆめ・ゆめゆめ〜打消・禁止②", "definitionRaw": "①まったく〜ない\\n②決して〜(し)てはいけない\\n\\n「否定」と「禁止」"}, {"id": 247, "wordRaw": "をさをさ〜打消①", "definitionRaw": "①ほとんど〜ない\\n\\n全部ではない"}, {"id": 248, "wordRaw": "あなかま①", "definitionRaw": "①しっ、静かに\\n\\nああやかましい！"}, {"id": 249, "wordRaw": "かちより①", "definitionRaw": "【徒歩より】\\n①歩いて"}, {"id": 250, "wordRaw": "けしからず①", "definitionRaw": "①異様だ\\n\\n「異しからず」は「異し」と同じ"}, {"id": 251, "wordRaw": "おもひやる①", "definitionRaw": "【思ひ遣る】\\n①想像する"}, {"id": 252, "wordRaw": "おきつ②", "definitionRaw": "【掟つ】\\n①あらかじめ決めておく\\n②指図する\\n\\n「掟」を定める"}, {"id": 253, "wordRaw": "すまふ①", "definitionRaw": "【争ふ・辞ふ】\\n①抵抗する\\n\\nNo！"}, {"id": 254, "wordRaw": "さす②", "definitionRaw": "【鎖す】\\n①閉める\\n②途中で〜するのをやめる\\n\\n今の「閉ざす」は元は「戸鎖す」"}, {"id": 255, "wordRaw": "しほたる①", "definitionRaw": "【潮垂る】\\n①涙で袖が濡れる\\n\\n涙ポロポロ"}, {"id": 256, "wordRaw": "たばかる②", "definitionRaw": "【謀る】\\n①工夫する\\n②だます"}, {"id": 257, "wordRaw": "まつりごつ①", "definitionRaw": "【政ごつ】\\n①政治を行う"}, {"id": 258, "wordRaw": "らうらうじ②", "definitionRaw": "【労労じ】\\n①もの慣れている\\n②気品がある\\n\\n社交上の苦労を積んで洗練された品のよさ"}, {"id": 259, "wordRaw": "むくつけし①", "definitionRaw": "①不気味だ\\n\\nぞっとする"}, {"id": 260, "wordRaw": "おほけなし①", "definitionRaw": "①身の程知らずだ\\n\\n思い上がり"}, {"id": 261, "wordRaw": "いぶせし①", "definitionRaw": "①気が晴れない\\n\\nすっきりしない"}, {"id": 262, "wordRaw": "しるし②", "definitionRaw": "【著し】\\n①明白だ\\n②〔「〜もしるく」の形で〕〜もそのとおりに\\n\\n現代語の「著しい」の語源"}, {"id": 263, "wordRaw": "こよなし②", "definitionRaw": "①格段である\\n②格段に劣っている\\n\\n段違い"}, {"id": 264, "wordRaw": "くやし①", "definitionRaw": "【悔し】\\n①悔やまれる\\n\\n後悔"}, {"id": 265, "wordRaw": "たのし①", "definitionRaw": "【楽し】\\n①裕福だ\\n\\n経済的に楽々"}, {"id": 266, "wordRaw": "おもはずなり①", "definitionRaw": "【思はずなり】\\n①思いがけない\\n\\n「意外」にも一語"}, {"id": 267, "wordRaw": "ことなり②", "definitionRaw": "【異なり】\\n①別である\\n②違う〜\\n\\n「こと」は「異」"}, {"id": 268, "wordRaw": "いろ②", "definitionRaw": "【色】\\n①情趣\\n②恋愛\\n\\n色を添える／色を好む"}, {"id": 269, "wordRaw": "こころ①", "definitionRaw": "【心】\\n①情趣を解する心\\n\\n貴族的な心＝風流心"}, {"id": 270, "wordRaw": "ゆゑ③", "definitionRaw": "【故】\\n①理由\\n②品格\\n③風情\\n\\n根っこ"}, {"id": 271, "wordRaw": "あない①", "definitionRaw": "【案内】\\n①内情\\n\\nインフォメーション"}, {"id": 272, "wordRaw": "さた③", "definitionRaw": "【沙汰】\\n①評議\\n②指図\\n③処置\\n\\n取り沙汰"}, {"id": 273, "wordRaw": "やう③", "definitionRaw": "【様】\\n①わけ\\n②手段\\n③こと\\n\\nわけあり"}, {"id": 274, "wordRaw": "あらまし①", "definitionRaw": "①計画\\n\\nこんな風に「有らまし」"}, {"id": 275, "wordRaw": "いそぎ①", "definitionRaw": "【いそぎ】\\n①準備\\n\\nいそいそ準備"}, {"id": 276, "wordRaw": "つま②", "definitionRaw": "【端】\\n①先\\n②きっかけ\\n\\n「つま先」の「つま」"}, {"id": 277, "wordRaw": "はらから①", "definitionRaw": "【同胞】\\n①兄弟姉妹\\n\\n同腹"}, {"id": 278, "wordRaw": "けぢめ①", "definitionRaw": "①区別\\n\\nただの区切り"}, {"id": 279, "wordRaw": "そのかみ②", "definitionRaw": "【其の上】\\n①その時\\n②その昔\\n\\n話題の時点"}, {"id": 280, "wordRaw": "ただびと②", "definitionRaw": "【徒人・直人】\\n①臣下\\n②普通の貴族\\n\\n天皇ｖｓ臣下／一流の貴族ｖｓ普通の貴族"}, {"id": 281, "wordRaw": "をりふし②", "definitionRaw": "【折節】\\n①ちょうどその時\\n②その時々、折々、季節\\n\\n「ふし」も「折」"}, {"id": 282, "wordRaw": "はやく③", "definitionRaw": "【早く】\\n①以前\\n②すでに\\n③なんとまあ\\n\\n今よりも早い時に"}, {"id": 283, "wordRaw": "つくづくと①", "definitionRaw": "①しんみりと\\n\\n「尽く尽くと」"}, {"id": 284, "wordRaw": "せめて②", "definitionRaw": "①無理やり\\n②非常に\\n\\nせめ＝迫め ぐいぐいとつめ寄る様や程度のすごさ"}, {"id": 285, "wordRaw": "さりとも①", "definitionRaw": "①いくらなんでも\\n\\nいくらなんでも「副詞」です"}, {"id": 286, "wordRaw": "さて②", "definitionRaw": "①そのまま\\n②そのほかの\\n\\n同じ状態のままで"}, {"id": 287, "wordRaw": "おほかた〜打消①", "definitionRaw": "①まったく〜ない\\n\\n全部否定"}, {"id": 288, "wordRaw": "かまへて③", "definitionRaw": "①注意して\\n②ぜひとも\\n③決して\\n\\n十分に心を配って"}, {"id": 289, "wordRaw": "させる①", "definitionRaw": "①たいした\\n\\nドンマイ！「させる」ことない"}, {"id": 290, "wordRaw": "さはれ①", "definitionRaw": "①どうにでもなれ\\n\\n成り行きのままよ"}, {"id": 291, "wordRaw": "いとしもなし①", "definitionRaw": "①たいしたことはない\\n\\nそれほど・でも・ない"}, {"id": 292, "wordRaw": "かずならず①", "definitionRaw": "【数ならず】\\n①取るに足りない\\n\\nかず＝数えあげる価値のあるもの"}, {"id": 293, "wordRaw": "いかにぞや①", "definitionRaw": "【如何にぞや】\\n①あまり感心しない"}, {"id": 294, "wordRaw": "さればよ\\nさればこそ①", "definitionRaw": "①思ったとおりだ\\n\\n「然れば思いつることよ」「然ればこそ思いつれ」の省略形"}, {"id": 295, "wordRaw": "よのつねなり②", "definitionRaw": "【世の常なり】\\n①ありきたりだ\\n②月並みな表現だ\\n\\n月並み"}, {"id": 296, "wordRaw": "ただならず③", "definitionRaw": "①様子が普通ではない\\n②心が平静ではない\\n③妊娠する\\n\\n「特別なことが何かある」"}, {"id": 297, "wordRaw": "ものもおぼえず②", "definitionRaw": "【物も覚えず】\\n①呆然としている\\n②道理をわきまえない\\n\\n頭真っ白！"}, {"id": 298, "wordRaw": "ひとりやりならず①", "definitionRaw": "【人遣りならず】\\n①他のせいではなく、自分の心からする\\n\\n自分のせい"}, {"id": 299, "wordRaw": "またのひ①", "definitionRaw": "【又の日】\\n①翌日\\n\\n「また」＝「next」"}, {"id": 300, "wordRaw": "〜あへず①", "definitionRaw": "①最後まで〜しきれない\\n\\n頑張りきれない"}, {"id": 301, "wordRaw": "のたまふ\\nのたまはす①", "definitionRaw": "【宣ふ／宣はす】\\n①おっしゃる\\n\\n「告（の）る」に尊敬の補助動詞が付いた「のりたまふ」が一語化した語"}, {"id": 302, "wordRaw": "おほす①", "definitionRaw": "【仰ふ】\\n①おっしゃる"}, {"id": 303, "wordRaw": "きこしめす②", "definitionRaw": "【聞こし召す】\\n①お聞きになる\\n②召し上がる"}, {"id": 304, "wordRaw": "ごらんず①", "definitionRaw": "【御覧ず】\\n①ご覧になる"}, {"id": 305, "wordRaw": "まうす②", "definitionRaw": "【申す】\\n①申し上げる\\n②（お）〜申し上げる"}, {"id": 306, "wordRaw": "きこゆ\\nきこえさす②", "definitionRaw": "【聞こゆ／聞こえさす】\\n①申し上げる、差し上げる\\n②（お）〜申し上げる"}, {"id": 307, "wordRaw": "おはす\\nおはします③", "definitionRaw": "いらっしゃる〔「あり」「をり」の尊敬語〕\\nいらっしゃる〔「行く」「来」の尊敬語〕\\n〜ていらっしゃる"}, {"id": 308, "wordRaw": "おぼす\\nおぼしめす①", "definitionRaw": "【思す／思し召す】\\n①お思いになる"}, {"id": 309, "wordRaw": "たまふ[ハ行四段]②", "definitionRaw": "【賜ふ・給ふ】\\n①お与えになる\\n②お〜になる"}, {"id": 310, "wordRaw": "たまふ[ハ行下二段]①", "definitionRaw": "【賜ふ・給ふ】\\n①〜ております"}, {"id": 311, "wordRaw": "たまはす①", "definitionRaw": "【賜はす】\\n①お与えになる"}, {"id": 312, "wordRaw": "たまはる①", "definitionRaw": "【賜はる・給はる】\\n①いただく"}, {"id": 313, "wordRaw": "うけたまはる②", "definitionRaw": "【承る】\\n①お受けする\\n②お聞きする"}, {"id": 314, "wordRaw": "たてまつる③", "definitionRaw": "【奉る】\\n①差し上げる\\n②（お）〜申し上げる\\n③お召しになる"}, {"id": 315, "wordRaw": "はべり③", "definitionRaw": "【侍り】\\n①お仕えする\\n②あります\\n③〜（ござい）ます"}, {"id": 316, "wordRaw": "さぶらふ③", "definitionRaw": "【候ふ】\\n①お仕えする\\n②あります\\n③〜（ござい）ます"}, {"id": 317, "wordRaw": "めす④", "definitionRaw": "【召す】\\n①お呼び寄せになる\\n②召し上がる\\n③お召しになる\\n④お乗りになる"}, {"id": 318, "wordRaw": "まうづ②", "definitionRaw": "【詣づ】\\n①参上する、うかがう\\n②参詣する"}, {"id": 319, "wordRaw": "まゐる④", "definitionRaw": "【参る】\\n①参上する\\n②差し上げる\\n③し申し上げる\\n④召し上がる"}, {"id": 320, "wordRaw": "まゐらす②", "definitionRaw": "【参らす】\\n①差し上げる\\n②（お）〜申し上げる"}, {"id": 321, "wordRaw": "まかる③", "definitionRaw": "【罷る】\\n①退出する\\n②参ります\\n③〜申す\\n\\n「出る」／「行く」／「まかり＋動詞」"}, {"id": 322, "wordRaw": "まかづ②", "definitionRaw": "【罷づ】\\n①退出する\\n②出かけます\\n\\n「出る」／「行く」"}, {"id": 323, "wordRaw": "つかはす③", "definitionRaw": "【遣はす】\\n①おやりになる\\n②お与えになる\\n③〔敬語を含まない〕贈る\\n\\n「やる」「贈る」「与える」"}, {"id": 324, "wordRaw": "あそばす②", "definitionRaw": "【遊ばす】\\n①演奏をなさる\\n②〜（を）なさる"}, {"id": 325, "wordRaw": "つかうまつる③", "definitionRaw": "【仕うまつる】\\n①お仕え申し上げる\\n②し申し上げる\\n③（お）〜申し上げる"}, {"id": 326, "wordRaw": "おほとのごもる①", "definitionRaw": "【大殿籠る】\\n①おやすみになる"}, {"id": 327, "wordRaw": "しろしめす②", "definitionRaw": "①ご存知である\\n②お治めになる"}, {"id": 328, "wordRaw": "行幸(ぎょうごう)・\\n行啓(ぎょうけい)・\\n御幸(ごこう)③", "definitionRaw": "①〔行幸〕天皇のお出かけ\\n②〔行啓〕皇后・皇太子などのお出かけ\\n③〔御幸〕上皇・法皇・女院のお出かけ"}, {"id": 329, "wordRaw": "そうす①", "definitionRaw": "【奏す】\\n①(天皇に)申し上げる"}, {"id": 330, "wordRaw": "けいす①", "definitionRaw": "【啓す】\\n①(皇后・中宮・皇太子に)申し上げる\\n\\n天皇以外の皇族に「言う」"}];
+
+    const circledMap = { '①': 1, '②': 2, '③': 3, '④': 4, '⑤': 5, '⑥': 6, '⑦': 7, '⑧': 8, '⑨': 9 };
+    const STORAGE_KEY = 'kobun-quiz-stats-v2';
+    const HISTORY_KEY = 'kobun-quiz-history-v1';
+
+    const els = {
+      app: document.getElementById('app'),
+      homePanel: document.getElementById('homePanel'),
+      quizPanel: document.getElementById('quizPanel'),
+      summaryPanel: document.getElementById('summaryPanel'),
+      statTotal: document.getElementById('statTotal'),
+      statStudied: document.getElementById('statStudied'),
+      statMastered: document.getElementById('statMastered'),
+      statWeak: document.getElementById('statWeak'),
+      modeGrid: document.getElementById('modeGrid'),
+      countGrid: document.getElementById('countGrid'),
+      startBtn: document.getElementById('startBtn'),
+      resetStatsBtn: document.getElementById('resetStatsBtn'),
+      sessionModeBadge: document.getElementById('sessionModeBadge'),
+      progressBadge: document.getElementById('progressBadge'),
+      streakBadge: document.getElementById('streakBadge'),
+      timerRing: document.getElementById('timerRing'),
+      timerValue: document.getElementById('timerValue'),
+      timerLabel: document.getElementById('timerLabel'),
+      timerCaption: document.getElementById('timerCaption'),
+      wordPanel: document.getElementById('wordPanel'),
+      wordTitle: document.getElementById('wordTitle'),
+      wordMeta: document.getElementById('wordMeta'),
+      choices: document.getElementById('choices'),
+      clearBtn: document.getElementById('clearBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      submitBtn: document.getElementById('submitBtn'),
+      feedbackBox: document.getElementById('feedbackBox'),
+      ruleHint: document.getElementById('ruleHint'),
+      summaryCopy: document.getElementById('summaryCopy'),
+      summaryAccuracy: document.getElementById('summaryAccuracy'),
+      summaryCorrect: document.getElementById('summaryCorrect'),
+      summaryWrong: document.getElementById('summaryWrong'),
+      summaryTimeout: document.getElementById('summaryTimeout'),
+      summaryStreak: document.getElementById('summaryStreak'),
+      weakList: document.getElementById('weakList'),
+      retryWeakBtn: document.getElementById('retryWeakBtn'),
+      retryModeBtn: document.getElementById('retryModeBtn'),
+      backHomeBtn: document.getElementById('backHomeBtn'),
+      toast: document.getElementById('toast'),
+    };
+
+    function normalizeEscapedNewlines(text) {
+      return String(text || '')
+        .replace(/\\n/g, '\n')
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n');
+    }
+
+    function escapeHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function tidyMeaning(text) {
+      return String(text || '')
+        .replace(/^[:：\-・\s]+/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function extractHeadword(raw) {
+      const lines = normalizeEscapedNewlines(raw).split('\n').map((line) => line.trim()).filter(Boolean);
+      return /^【.+】$/.test(lines[0] || '') ? lines[0] : '';
+    }
+
+    function extractSupport(raw) {
+      const lines = normalizeEscapedNewlines(raw).split('\n').map((line) => line.trim()).filter(Boolean);
+      return lines.filter((line) => !/^【.+】$/.test(line) && !/^[①②③④⑤⑥⑦⑧⑨]/.test(line)).join(' / ');
+    }
+
+    function extractMeanings(raw) {
+      const lines = normalizeEscapedNewlines(raw).split('\n').map((line) => line.trim()).filter(Boolean);
+      const meanings = [];
+      for (const line of lines) {
+        const match = line.match(/^([①②③④⑤⑥⑦⑧⑨])\s*(.+)$/);
+        if (match) {
+          meanings.push({ index: circledMap[match[1]] || meanings.length + 1, text: tidyMeaning(match[2]) });
+        }
+      }
+      if (!meanings.length) {
+        const fallback = lines.find((line) => !/^【.+】$/.test(line));
+        if (fallback) meanings.push({ index: 1, text: tidyMeaning(fallback) });
+      }
+      return meanings;
+    }
+
+    function formatDefinitionHtml(raw) {
+      return escapeHtml(normalizeEscapedNewlines(raw)).replace(/\n/g, '<br />');
+    }
+
+    function extractMeaningCount(wordRaw, definitionRaw, meanings) {
+      const suffix = normalizeEscapedNewlines(wordRaw).match(/([①②③④⑤⑥⑦⑧⑨])\s*$/);
+      if (suffix) return circledMap[suffix[1]] || meanings.length || 1;
+      return meanings.length || 1;
+    }
+
+    function displayWord(wordRaw) {
+      return normalizeEscapedNewlines(wordRaw).trim();
+    }
+
+    function normalizeText(text) {
+      return String(text || '')
+        .replace(/[【】〔〕（）()・,、。!！?？:\-〜~\s]/g, '')
+        .trim();
+    }
+
+    function normalizeMeaningForCompare(text) {
+      return normalizeText(text)
+        .replace(/^[①②③④⑤⑥⑦⑧⑨]/, '')
+        .replace(/^(疑問|反語|詠嘆|呼応|強意|尊敬|謙譲|丁寧)/, '')
+        .trim();
+    }
+
+    function buildTokens(text) {
+      const source = normalizeText(text);
+      const tokenSet = new Set();
+      for (let i = 0; i < source.length - 1; i += 1) tokenSet.add(source.slice(i, i + 2));
+      for (const ch of source) tokenSet.add(ch);
+      return Array.from(tokenSet);
+    }
+
+    function jaccard(aTokens, bTokens) {
+      if (!aTokens.length || !bTokens.length) return 0;
+      const a = new Set(aTokens);
+      const b = new Set(bTokens);
+      let intersection = 0;
+      a.forEach((token) => { if (b.has(token)) intersection += 1; });
+      const union = a.size + b.size - intersection;
+      return union ? intersection / union : 0;
+    }
+
+    function diceCoefficient(a, b) {
+      if (!a || !b) return 0;
+      if (a === b) return 1;
+      if (a.length < 2 || b.length < 2) {
+        return a === b ? 1 : 0;
+      }
+      const pairs = (text) => {
+        const map = new Map();
+        for (let i = 0; i < text.length - 1; i += 1) {
+          const pair = text.slice(i, i + 2);
+          map.set(pair, (map.get(pair) || 0) + 1);
+        }
+        return map;
+      };
+      const aPairs = pairs(a);
+      const bPairs = pairs(b);
+      let overlap = 0;
+      aPairs.forEach((count, pair) => {
+        if (bPairs.has(pair)) overlap += Math.min(count, bPairs.get(pair));
+      });
+      return (2 * overlap) / ((a.length - 1) + (b.length - 1));
+    }
+
+    function endingOverlapLength(a, b) {
+      let count = 0;
+      while (count < a.length && count < b.length) {
+        if (a[a.length - 1 - count] !== b[b.length - 1 - count]) break;
+        count += 1;
+      }
+      return count;
+    }
+
+    function meaningSimilarity(a, b) {
+      const na = normalizeMeaningForCompare(a);
+      const nb = normalizeMeaningForCompare(b);
+      if (!na || !nb) {
+        return { equal: false, contains: false, tokenScore: 0, charScore: 0, endingScore: 0 };
+      }
+      return {
+        equal: na === nb,
+        contains: na.includes(nb) || nb.includes(na),
+        tokenScore: jaccard(buildTokens(na), buildTokens(nb)),
+        charScore: diceCoefficient(na, nb),
+        endingScore: endingOverlapLength(na, nb),
+      };
+    }
+
+    function isAmbiguousMeaningPair(a, b) {
+      const sim = meaningSimilarity(a, b);
+      if (sim.equal || sim.contains) return true;
+      if (sim.charScore >= 0.88) return true;
+      if (sim.tokenScore >= 0.8 && sim.charScore >= 0.72) return true;
+      if (Math.max(normalizeMeaningForCompare(a).length, normalizeMeaningForCompare(b).length) <= 8 && sim.endingScore >= 3 && sim.charScore >= 0.62) return true;
+      return false;
+    }
+
+    const TERMS = RAW_DATA.map((row, index) => {
+      const meanings = extractMeanings(row.definitionRaw);
+      return {
+        id: row.id || index + 1,
+        rank: index,
+        wordRaw: row.wordRaw,
+        definitionRaw: row.definitionRaw,
+        wordText: displayWord(row.wordRaw),
+        headword: extractHeadword(row.definitionRaw),
+        support: extractSupport(row.definitionRaw),
+        meanings,
+        meaningCount: extractMeaningCount(row.wordRaw, row.definitionRaw, meanings),
+      };
+    }).filter((item) => item.meanings.length);
+
+    const TERM_BY_ID = Object.fromEntries(TERMS.map((item) => [item.id, item]));
+    const CHOICE_POOL = TERMS.flatMap((term) => term.meanings.map((meaning) => ({
+      optionId: `${term.id}-${meaning.index}`,
+      entryId: term.id,
+      sourceWord: term.wordText,
+      text: meaning.text,
+      count: term.meanings.length,
+      tokens: buildTokens(meaning.text),
+      normalized: normalizeMeaningForCompare(meaning.text),
+    })));
+
+    const state = {
+      mode: 'smart',
+      count: 15,
+      stats: loadStats(),
+      history: loadHistory(),
+      session: null,
+      currentQuestion: null,
+      selectedIds: new Set(),
+      timerId: null,
+      toastId: null,
+      advanceId: null,
+    };
+
+    function loadStats() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveStats() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.stats));
+    }
+
+    function loadHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY) || '{"bestSessionStreak":0}');
+      } catch (error) {
+        return { bestSessionStreak: 0 };
+      }
+    }
+
+    function saveHistory() {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
+    }
+
+    function defaultStat() {
+      return { seen: 0, correct: 0, wrong: 0, timeout: 0, streak: 0, bestStreak: 0, mastery: 36, lastResult: 'new', lastSeen: 0 };
+    }
+
+    function getStat(termId) {
+      if (!state.stats[termId]) state.stats[termId] = defaultStat();
+      return state.stats[termId];
+    }
+
+    function weaknessScore(term) {
+      const stat = state.stats[term.id] || defaultStat();
+      const unseenBoost = stat.seen === 0 ? 2.2 : 0;
+      const missPenalty = stat.wrong * 3.2 + stat.timeout * 4.1;
+      const streakPenalty = Math.max(0, 3 - stat.streak) * 0.9;
+      const masteryPenalty = (100 - (stat.mastery || 36)) / 22;
+      const recentPenalty = stat.lastResult === 'wrong' || stat.lastResult === 'timeout' ? 1.8 : 0;
+      return unseenBoost + missPenalty + streakPenalty + masteryPenalty + recentPenalty;
+    }
+
+    function updateDashboard() {
+      const studied = TERMS.filter((term) => (state.stats[term.id] || {}).seen > 0).length;
+      const mastered = TERMS.filter((term) => (state.stats[term.id] || {}).mastery >= 75).length;
+      const weak = TERMS.filter((term) => weaknessScore(term) >= 7).length;
+      els.statTotal.textContent = TERMS.length;
+      els.statStudied.textContent = studied;
+      els.statMastered.textContent = mastered;
+      els.statWeak.textContent = weak;
+    }
+
+    function modeLabel(mode) {
+      return { smart: 'SMART MODE', weak: 'WEAK REVIEW', shuffle: 'SHUFFLE MODE', streak: 'STREAK RUN' }[mode] || 'QUIZ';
+    }
+
+    function getOptionCount(meaningCount) {
+      if (meaningCount <= 1) return 4;
+      if (meaningCount <= 3) return 6;
+      return 8;
+    }
+
+    function getTimeLimit(meaningCount, mode) {
+      const base = meaningCount <= 1 ? 12 : meaningCount <= 3 ? 18 : 24;
+      return mode === 'streak' ? Math.max(8, base - 3) : base;
+    }
+
+    function pickWeightedUnique(pool, count, weightFn) {
+      const source = pool.slice();
+      const picks = [];
+      while (source.length && picks.length < count) {
+        const weights = source.map((item) => Math.max(0.15, weightFn(item)));
+        const total = weights.reduce((sum, weight) => sum + weight, 0);
+        let threshold = Math.random() * total;
+        let chosenIndex = 0;
+        for (let i = 0; i < source.length; i += 1) {
+          threshold -= weights[i];
+          if (threshold <= 0) {
+            chosenIndex = i;
+            break;
+          }
+        }
+        picks.push(source.splice(chosenIndex, 1)[0]);
+      }
+      return picks;
+    }
+
+    function buildDeck(mode, count) {
+      let pool = TERMS.slice();
+      if (mode === 'weak') {
+        const weakPool = pool.filter((term) => weaknessScore(term) >= 4.5);
+        pool = weakPool.length ? weakPool : pool;
+      }
+      if (mode === 'shuffle') {
+        return pool.sort(() => Math.random() - 0.5).slice(0, count);
+      }
+      if (mode === 'streak') {
+        return pickWeightedUnique(pool, count, (term) => weaknessScore(term) * 0.75 + 1.4);
+      }
+      return pickWeightedUnique(pool, count, (term) => mode === 'weak' ? weaknessScore(term) + 1 : weaknessScore(term) + 1.6);
+    }
+
+    function scoreDistractor(candidate, term) {
+      const similarities = term.meanings.map((meaning) => meaningSimilarity(candidate.text, meaning.text));
+      const tokenOverlap = Math.max(...similarities.map((sim) => sim.tokenScore), 0);
+      const charOverlap = Math.max(...similarities.map((sim) => sim.charScore), 0);
+      const overlap = Math.max(tokenOverlap, charOverlap * 0.92);
+      const countMatch = candidate.count === term.meanings.length ? 1.25 : 0;
+      const lengthMatch = Math.max(0, 1 - Math.abs(candidate.text.length - (term.meanings[0]?.text.length || 0)) / 24);
+      const familiarity = /する|なる|思う|見る|言う|行く|知る|祈る|会う|座る|食べる|与える/.test(candidate.text) ? 0.45 : 0;
+      const sweetSpot = 1 - Math.abs(overlap - 0.48) * 1.9;
+      const tooFarPenalty = overlap < 0.14 ? -1.3 : 0;
+      return sweetSpot * 4.8 + overlap * 2.1 + countMatch + lengthMatch + familiarity + tooFarPenalty + Math.random() * 0.25;
+    }
+
+    function pickDistractors(term, count) {
+      const chosen = [];
+      const seenText = new Set(term.meanings.map((meaning) => meaning.text));
+      const candidates = CHOICE_POOL
+        .filter((choice) => choice.entryId !== term.id && !seenText.has(choice.text))
+        .filter((choice) => !term.meanings.some((meaning) => isAmbiguousMeaningPair(choice.text, meaning.text)))
+        .map((choice) => ({ choice, score: scoreDistractor(choice, term) }))
+        .sort((a, b) => b.score - a.score);
+
+      for (const entry of candidates) {
+        if (chosen.length >= count) break;
+        if (seenText.has(entry.choice.text)) continue;
+        if (chosen.some((item) => isAmbiguousMeaningPair(item.text, entry.choice.text))) continue;
+        chosen.push(entry.choice);
+        seenText.add(entry.choice.text);
+      }
+
+      if (chosen.length < count) {
+        const fallback = CHOICE_POOL.filter((choice) => choice.entryId !== term.id && !seenText.has(choice.text))
+          .filter((choice) => !term.meanings.some((meaning) => isAmbiguousMeaningPair(choice.text, meaning.text)));
+        while (fallback.length && chosen.length < count) {
+          const index = Math.floor(Math.random() * fallback.length);
+          const picked = fallback.splice(index, 1)[0];
+          if (chosen.some((item) => isAmbiguousMeaningPair(item.text, picked.text))) continue;
+          chosen.push(picked);
+        }
+      }
+      return chosen.slice(0, count);
+    }
+
+    function shuffle(array) {
+      const list = array.slice();
+      for (let i = list.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+      return list;
+    }
+
+    function createQuestion(term, phase) {
+      const optionCount = getOptionCount(term.meanings.length);
+      const correctOptions = term.meanings.map((meaning) => ({
+        id: `${term.id}-${meaning.index}`,
+        text: meaning.text,
+        correct: true,
+      }));
+      const distractors = pickDistractors(term, Math.max(0, optionCount - correctOptions.length)).map((item) => ({
+        id: item.optionId,
+        text: item.text,
+        correct: false,
+      }));
+      return {
+        term,
+        phase,
+        optionCount,
+        timeLimit: getTimeLimit(term.meanings.length, state.mode),
+        correctIds: new Set(correctOptions.map((option) => option.id)),
+        options: shuffle(correctOptions.concat(distractors)),
+      };
+    }
+
+    function startSession(mode = state.mode, count = state.count) {
+      state.mode = mode;
+      state.count = count;
+      const deck = buildDeck(mode, count);
+      state.session = {
+        mode,
+        requestedCount: count,
+        mainDeck: deck.slice(),
+        retryDeck: [],
+        queueCursor: 0,
+        round: 0,
+        answered: 0,
+        correct: 0,
+        wrong: 0,
+        timeout: 0,
+        streak: 0,
+        bestStreak: 0,
+        answers: [],
+        currentRetryCount: 0,
+        previousTerms: [],
+        startedAt: Date.now(),
+      };
+      switchPanel('quiz');
+      nextQuestion();
+    }
+
+    function switchPanel(name) {
+      els.homePanel.classList.toggle('active', name === 'home');
+      els.quizPanel.classList.toggle('active', name === 'quiz');
+      els.summaryPanel.classList.toggle('active', name === 'summary');
+    }
+
+    function scheduleRetry(termId, retryCount = 0) {
+      const exists = state.session.retryDeck.find((item) => item.id === termId);
+      if (exists) {
+        exists.dueAt = Math.min(exists.dueAt, state.session.answered + 2);
+        exists.retryCount = Math.max(exists.retryCount, retryCount);
+        return;
+      }
+      state.session.retryDeck.push({ id: termId, dueAt: state.session.answered + 2, retryCount });
+    }
+
+    function takeNextTerm() {
+      const recent = state.session.previousTerms.slice(-2);
+      const eligibleIndex = state.session.retryDeck.findIndex((item) => item.dueAt <= state.session.answered && !recent.includes(item.id));
+      if (eligibleIndex >= 0) {
+        const retry = state.session.retryDeck.splice(eligibleIndex, 1)[0];
+        return { term: TERM_BY_ID[retry.id], phase: retry.retryCount > 0 ? 're-review' : 'review', retryCount: retry.retryCount + 1 };
+      }
+
+      while (state.session.queueCursor < state.session.mainDeck.length) {
+        const term = state.session.mainDeck[state.session.queueCursor++];
+        if (!recent.includes(term.id) || state.session.mainDeck.length < 3) {
+          return { term, phase: 'main', retryCount: 0 };
+        }
+      }
+
+      if (state.session.retryDeck.length) {
+        const retry = state.session.retryDeck.shift();
+        return { term: TERM_BY_ID[retry.id], phase: retry.retryCount > 0 ? 're-review' : 'review', retryCount: retry.retryCount + 1 };
+      }
+
+      return null;
+    }
+
+    function nextQuestion() {
+      clearTimeout(state.advanceId);
+      clearTimer();
+      const next = takeNextTerm();
+      if (!next) {
+        finishSession();
+        return;
+      }
+      state.session.round += 1;
+      state.session.currentRetryCount = next.retryCount;
+      state.session.previousTerms.push(next.term.id);
+      state.currentQuestion = createQuestion(next.term, next.phase);
+      state.selectedIds = new Set();
+      renderQuestion();
+      startTimer(state.currentQuestion.timeLimit);
+    }
+
+    function renderQuestion() {
+      const { term, optionCount } = state.currentQuestion;
+      const correctCount = term.meanings.length;
+      els.sessionModeBadge.textContent = modeLabel(state.mode);
+      els.progressBadge.textContent = `${state.session.answered + 1} / ${state.session.requestedCount}+`;
+      els.streakBadge.textContent = `連勝 ${state.session.streak}`;
+      els.wordTitle.textContent = term.wordText;
+      const headword = term.headword ? `${term.headword} / ` : '';
+      const phaseLabel = state.currentQuestion.phase === 'main' ? '本戦' : '復習';
+      els.wordMeta.innerHTML = `${headword}<strong>${correctCount}個選択</strong> ・ ${optionCount}択 ・ ${phaseLabel}ラウンド`;
+      els.ruleHint.textContent = `今のラウンドは ${optionCount}択中 ${correctCount}個正解 の形式です。`;
+      els.nextBtn.classList.add('hidden');
+      els.submitBtn.classList.remove('hidden');
+      els.clearBtn.classList.remove('hidden');
+      els.feedbackBox.className = 'feedback-box empty';
+      els.feedbackBox.innerHTML = `<div class="helper-text">該当する意味をすべてタップしてから判定してください。今回は <strong>${correctCount}個ちょうど</strong> 選ぶと判定ボタンが有効になります。</div>`;
+      renderChoices();
+    }
+
+    function renderChoices(reveal = false, timedOut = false) {
+      const optionsHtml = state.currentQuestion.options.map((option, index) => {
+        const selected = state.selectedIds.has(option.id);
+        const classes = ['choice'];
+        if (selected) classes.push('selected');
+        if (reveal) {
+          classes.push('disabled');
+          if (option.correct) classes.push('correct');
+          if (selected && !option.correct) classes.push('incorrect');
+          if (timedOut && !selected && option.correct) classes.push('selected');
+        }
+        return `
+          <button class="${classes.join(' ')}" data-option-id="${option.id}" ${reveal ? 'disabled' : ''}>
+            <span class="choice-index">${index + 1}</span>
+            <span class="choice-text">${option.text}</span>
+          </button>
+        `;
+      }).join('');
+      els.choices.innerHTML = optionsHtml;
+      els.submitBtn.disabled = reveal || state.selectedIds.size !== state.currentQuestion.correctIds.size;
+    }
+
+    function updateSubmitAvailability() {
+      els.submitBtn.disabled = state.selectedIds.size !== state.currentQuestion.correctIds.size;
+    }
+
+    function startTimer(limit) {
+      clearTimer();
+      const startedAt = performance.now();
+      const total = limit * 1000;
+      const tick = () => {
+        const elapsed = performance.now() - startedAt;
+        const remaining = Math.max(0, total - elapsed);
+        const seconds = remaining / 1000;
+        const ratio = remaining / total;
+        els.timerRing.style.background = `conic-gradient(${ratio < 0.25 ? 'var(--danger)' : ratio < 0.5 ? 'var(--accent-2)' : 'var(--accent)'} ${ratio * 360}deg, rgba(255,255,255,0.08) 0)`;
+        els.timerValue.textContent = Math.ceil(seconds);
+        els.timerLabel.textContent = `${seconds.toFixed(1)}秒`;
+        els.timerCaption.textContent = ratio < 0.3 ? '急いで選択' : '選び終えたら判定';
+        if (remaining <= 0) {
+          clearTimer();
+          submitAnswer('timeout');
+          return;
+        }
+      };
+      tick();
+      state.timerId = setInterval(tick, 100);
+    }
+
+    function clearTimer() {
+      if (state.timerId) clearInterval(state.timerId);
+      state.timerId = null;
+    }
+
+    function vibrate(pattern) {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    }
+
+    function celebrate() {
+      els.wordPanel.classList.remove('flash');
+      void els.wordPanel.offsetWidth;
+      els.wordPanel.classList.add('flash');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'confetti';
+      const colors = ['#7ef3d6', '#ffc86f', '#ff8a65', '#5fb8ff'];
+      for (let i = 0; i < 18; i += 1) {
+        const dot = document.createElement('span');
+        dot.className = 'confetti-dot';
+        dot.style.left = `${Math.random() * 100}%`;
+        dot.style.top = `${Math.random() * 18}%`;
+        dot.style.background = colors[i % colors.length];
+        dot.style.setProperty('--dx', `${(Math.random() - 0.5) * 120}px`);
+        dot.style.animationDelay = `${Math.random() * 120}ms`;
+        wrapper.appendChild(dot);
+      }
+      els.wordPanel.appendChild(wrapper);
+      setTimeout(() => wrapper.remove(), 1000);
+    }
+
+    function showToast(message) {
+      clearTimeout(state.toastId);
+      els.toast.textContent = message;
+      els.toast.classList.add('show');
+      state.toastId = setTimeout(() => els.toast.classList.remove('show'), 1800);
+    }
+
+    function submitAnswer(reason = 'manual') {
+      if (!state.currentQuestion) return;
+      clearTimer();
+      const { term, correctIds, options, timeLimit } = state.currentQuestion;
+      const selected = Array.from(state.selectedIds);
+      const isExact = selected.length === correctIds.size && selected.every((id) => correctIds.has(id));
+      const wasTimeout = reason === 'timeout';
+      const isCorrect = !wasTimeout && isExact;
+      const stat = getStat(term.id);
+      stat.seen += 1;
+      stat.lastSeen = Date.now();
+
+      if (isCorrect) {
+        stat.correct += 1;
+        stat.streak += 1;
+        stat.bestStreak = Math.max(stat.bestStreak, stat.streak);
+        stat.mastery = Math.min(100, (stat.mastery || 36) + (state.currentQuestion.phase === 'main' ? 10 : 7));
+        stat.lastResult = 'correct';
+        state.session.correct += 1;
+        state.session.streak += 1;
+        state.session.bestStreak = Math.max(state.session.bestStreak, state.session.streak);
+        vibrate(18);
+        celebrate();
+      } else {
+        stat.wrong += wasTimeout ? 0 : 1;
+        stat.timeout += wasTimeout ? 1 : 0;
+        stat.streak = 0;
+        stat.mastery = Math.max(0, (stat.mastery || 36) - (wasTimeout ? 14 : 11));
+        stat.lastResult = wasTimeout ? 'timeout' : 'wrong';
+        state.session.wrong += wasTimeout ? 0 : 1;
+        state.session.timeout += wasTimeout ? 1 : 0;
+        state.session.streak = 0;
+        vibrate([22, 50, 22]);
+        if (state.session.currentRetryCount < 2) scheduleRetry(term.id, state.session.currentRetryCount);
+      }
+
+      saveStats();
+      updateDashboard();
+      renderChoices(true, wasTimeout);
+      state.session.answered += 1;
+      state.session.answers.push({ termId: term.id, isCorrect, wasTimeout });
+      els.progressBadge.textContent = `${state.session.answered} / ${state.session.requestedCount}+`;
+      els.streakBadge.textContent = `連勝 ${state.session.streak}`;
+
+      const correctLabels = term.meanings.map((meaning) => `<span class="meaning-pill"><strong>${meaning.index}</strong>${escapeHtml(meaning.text)}</span>`).join('');
+      const fullDefinition = formatDefinitionHtml(term.definitionRaw);
+      const headingClass = isCorrect ? 'success' : 'fail';
+      const heading = isCorrect ? '正解' : wasTimeout ? '時間切れ' : '不正解';
+      const copy = isCorrect
+        ? 'すべての意味を取り切れました。この語は定着寄りです。'
+        : '正しい意味を確認して、次の復習ラウンドで取り返しましょう。';
+      els.feedbackBox.className = 'feedback-box';
+      els.feedbackBox.innerHTML = `
+        <h3 class="feedback-title ${headingClass}">${heading}</h3>
+        <p class="feedback-copy">${copy}</p>
+        <div class="correct-list">${correctLabels}</div>
+        <p class="feedback-copy">2カラム目の全文</p>
+        <div class="feedback-raw">${fullDefinition}</div>
+      `;
+
+      els.nextBtn.classList.remove('hidden');
+      els.submitBtn.disabled = true;
+      els.clearBtn.classList.add('hidden');
+      if (isCorrect) {
+        state.advanceId = setTimeout(nextQuestion, 900);
+      } else if (wasTimeout) {
+        showToast('時間切れ。苦手語として記録しました');
+      } else {
+        showToast('復習キューに追加しました');
+      }
+    }
+
+    function finishSession() {
+      clearTimer();
+      const totalAnswered = Math.max(1, state.session.answered);
+      const accuracy = Math.round((state.session.correct / totalAnswered) * 100);
+      state.history.bestSessionStreak = Math.max(state.history.bestSessionStreak || 0, state.session.bestStreak);
+      saveHistory();
+      els.summaryAccuracy.textContent = `${accuracy}%`;
+      els.summaryCorrect.textContent = state.session.correct;
+      els.summaryWrong.textContent = state.session.wrong;
+      els.summaryTimeout.textContent = state.session.timeout;
+      els.summaryStreak.textContent = state.session.bestStreak;
+      const modeText = { smart: 'スマート', weak: '苦手特訓', shuffle: 'ランダム', streak: '連勝チャレンジ' }[state.session.mode] || 'クイズ';
+      els.summaryCopy.textContent = `${modeText}で ${state.session.answered} ラウンド実施。正答率 ${accuracy}% です。苦手スコアの高い語を右に並べました。`;
+
+      const weakTerms = TERMS
+        .map((term) => ({ term, score: weaknessScore(term) }))
+        .filter((item) => item.score >= 4)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 14);
+
+      els.weakList.innerHTML = weakTerms.length
+        ? weakTerms.map((item) => `
+            <div class="weak-item">
+              <div class="weak-top">
+                <div class="weak-word">${item.term.wordText.replace(/\n/g, '<br />')}</div>
+                <div class="weak-score">weak ${item.score.toFixed(1)}</div>
+              </div>
+              <div class="weak-meanings">
+                ${item.term.meanings.map((meaning) => `<span class="weak-pill"><strong>${meaning.index}</strong>${meaning.text}</span>`).join('')}
+              </div>
+            </div>
+          `).join('')
+        : '<div class="helper-text">今のところ強い苦手語はありません。次はランダムか連勝チャレンジで定着を固めましょう。</div>';
+
+      els.retryWeakBtn.disabled = weakTerms.length === 0;
+      switchPanel('summary');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetStats() {
+      if (!window.confirm('保存した成績と苦手記録を消去します。よろしいですか？')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(HISTORY_KEY);
+      state.stats = {};
+      state.history = { bestSessionStreak: 0 };
+      updateDashboard();
+      showToast('学習記録をリセットしました');
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      document.querySelectorAll('[data-mode]').forEach((button) => button.classList.toggle('active', button.dataset.mode === mode));
+    }
+
+    function setCount(count) {
+      state.count = Number(count);
+      document.querySelectorAll('[data-count]').forEach((button) => button.classList.toggle('active', Number(button.dataset.count) === state.count));
+    }
+
+    els.modeGrid.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-mode]');
+      if (!button) return;
+      setMode(button.dataset.mode);
+    });
+
+    els.countGrid.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-count]');
+      if (!button) return;
+      setCount(button.dataset.count);
+    });
+
+    els.startBtn.addEventListener('click', () => startSession(state.mode, state.count));
+    els.resetStatsBtn.addEventListener('click', resetStats);
+    els.clearBtn.addEventListener('click', () => {
+      state.selectedIds.clear();
+      renderChoices();
+      updateSubmitAvailability();
+    });
+    els.nextBtn.addEventListener('click', nextQuestion);
+    els.submitBtn.addEventListener('click', () => submitAnswer('manual'));
+    els.retryWeakBtn.addEventListener('click', () => startSession('weak', state.count));
+    els.retryModeBtn.addEventListener('click', () => startSession(state.session?.mode || state.mode, state.session?.requestedCount || state.count));
+    els.backHomeBtn.addEventListener('click', () => switchPanel('home'));
+
+    els.choices.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-option-id]');
+      if (!button || button.disabled) return;
+      const id = button.dataset.optionId;
+      if (state.selectedIds.has(id)) state.selectedIds.delete(id);
+      else state.selectedIds.add(id);
+      renderChoices();
+      updateSubmitAvailability();
+    });
+
+    window.addEventListener('keydown', (event) => {
+      if (!els.quizPanel.classList.contains('active') || !state.currentQuestion) return;
+      if (/^[1-8]$/.test(event.key)) {
+        const index = Number(event.key) - 1;
+        const option = state.currentQuestion.options[index];
+        if (!option) return;
+        if (state.selectedIds.has(option.id)) state.selectedIds.delete(option.id);
+        else state.selectedIds.add(option.id);
+        renderChoices();
+        updateSubmitAvailability();
+      }
+      if (event.key === 'Enter') {
+        if (!els.submitBtn.disabled) submitAnswer('manual');
+      }
+      if (event.key.toLowerCase() === 'r') {
+        state.selectedIds.clear();
+        renderChoices();
+        updateSubmitAvailability();
+      }
+    });
+
+    updateDashboard();
+    setMode(state.mode);
+    setCount(state.count);
+  </script>
+</body>
+</html>
