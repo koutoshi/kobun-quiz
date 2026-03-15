@@ -579,33 +579,10 @@
     }
 
     .controls {
-      display: flex;
+      display: grid;
       gap: 12px;
-      flex-wrap: wrap;
+      justify-items: center;
       align-items: center;
-      justify-content: space-between;
-    }
-
-    .controls-left,
-    .controls-center,
-    .controls-right {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .controls-right {
-      justify-content: flex-end;
-    }
-
-    .controls-center {
-      justify-content: center;
-      flex: 1 1 auto;
-    }
-
-    .controls-right {
-      min-width: 84px;
     }
 
     .submit-btn,
@@ -637,7 +614,7 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.5;
-      text-align: right;
+      text-align: center;
     }
 
     .helper-text {
@@ -1053,19 +1030,17 @@
         gap: 8px;
       }
 
-      body.quiz-active .choice-index {
-        width: 26px;
-        height: 26px;
-        font-size: 11px;
-      }
-
       body.quiz-active .choice-text {
-        font-size: 13px;
-        line-height: 1.38;
+        font-size: 15px;
+        line-height: 1.42;
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 4;
         overflow: hidden;
+      }
+
+      body.quiz-active .choice-index {
+        display: none;
       }
 
       body.quiz-active .feedback-box {
@@ -1098,55 +1073,18 @@
       }
 
       body.quiz-active .controls {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 10px;
-      }
-
-      body.quiz-active .controls-left,
-      body.quiz-active .controls-center,
-      body.quiz-active .controls-right {
-        width: auto;
-      }
-
-      body.quiz-active .controls-center {
-        justify-content: center;
-      }
-
-      body.quiz-active .ghost-btn {
-        padding: 12px 14px;
+        gap: 8px;
       }
 
       body.quiz-active .action-btn {
-        min-width: 164px;
-        width: auto;
+        min-width: 176px;
+        width: min(100%, 240px);
         padding: 14px 18px;
       }
 
       body.quiz-active .controls-status {
         font-size: 11px;
-        text-align: right;
-      }
-
-      .controls {
-        align-items: stretch;
-      }
-
-      .controls-left,
-      .controls-center,
-      .controls-right,
-      .summary-actions,
-      .launch-row {
-        width: 100%;
-      }
-
-      .controls-left > *,
-      .controls-center > *,
-      .controls-right > *,
-      .summary-actions > *,
-      .launch-row > * {
-        flex: 1 1 auto;
+        text-align: center;
       }
 
       .submit-btn,
@@ -1155,6 +1093,16 @@
       .ghost-btn,
       .next-btn {
         width: 100%;
+      }
+
+      .summary-actions,
+      .launch-row {
+        width: 100%;
+      }
+
+      .summary-actions > *,
+      .launch-row > * {
+        flex: 1 1 auto;
       }
 
       .quiz-topbar { align-items: stretch; }
@@ -1259,15 +1207,8 @@
             <div class="choices" id="choices"></div>
 
             <div class="controls">
-              <div class="controls-left">
-                <button class="ghost-btn" id="clearBtn">選択をリセット</button>
-              </div>
-              <div class="controls-center">
-                <button class="action-btn" id="actionBtn" disabled data-mode="submit">判定する</button>
-              </div>
-              <div class="controls-right">
-                <div class="controls-status" id="controlsStatus">必要数を選ぶと判定できます</div>
-              </div>
+              <div class="controls-status" id="controlsStatus">必要数を選ぶと自動で判定します</div>
+              <button class="action-btn hidden" id="actionBtn" disabled data-mode="next">次へ</button>
             </div>
 
             <div class="feedback-box empty" id="feedbackBox">
@@ -1287,7 +1228,7 @@
               </div>
               <div class="insight-card">
                 <h3>操作</h3>
-                <p>スマホはタップで選択、PCはクリックまたは数字キーで選択。Enterで判定、Rで選択リセット。</p>
+                <p>スマホはタップで選択、PCはクリックまたは数字キーで選択。必要数そろうと自動判定、結果後は Enter でも次へ進めます。</p>
               </div>
               <div class="insight-card">
                 <h3>判定ルール</h3>
@@ -1369,7 +1310,6 @@
       wordTitle: document.getElementById('wordTitle'),
       wordMeta: document.getElementById('wordMeta'),
       choices: document.getElementById('choices'),
-      clearBtn: document.getElementById('clearBtn'),
       actionBtn: document.getElementById('actionBtn'),
       controlsStatus: document.getElementById('controlsStatus'),
       feedbackBox: document.getElementById('feedbackBox'),
@@ -1574,6 +1514,7 @@
       timerId: null,
       toastId: null,
       advanceId: null,
+      autoSubmitId: null,
       actionLocked: false,
     };
 
@@ -1639,7 +1580,13 @@
       els.actionBtn.textContent = label || (mode === 'next' ? '次へ' : '判定する');
       els.actionBtn.disabled = disabled;
       els.actionBtn.classList.toggle('is-next', mode === 'next');
+      els.actionBtn.classList.toggle('hidden', mode !== 'next');
       if (status) els.controlsStatus.textContent = status;
+    }
+
+    function clearAutoSubmit() {
+      if (state.autoSubmitId) clearTimeout(state.autoSubmitId);
+      state.autoSubmitId = null;
     }
 
     function modeLabel(mode) {
@@ -1788,6 +1735,7 @@
         previousTerms: [],
         startedAt: Date.now(),
       };
+      clearAutoSubmit();
       state.actionLocked = false;
       switchPanel('quiz');
       nextQuestion();
@@ -1836,6 +1784,7 @@
     function nextQuestion() {
       clearTimeout(state.advanceId);
       clearTimer();
+      clearAutoSubmit();
       state.actionLocked = false;
       const next = takeNextTerm();
       if (!next) {
@@ -1863,14 +1812,13 @@
       const phaseLabel = state.currentQuestion.phase === 'main' ? '本戦' : '復習';
       els.wordMeta.innerHTML = `${headword}<strong>${correctCount}個選択</strong> ・ ${optionCount}択 ・ ${phaseLabel}ラウンド`;
       els.ruleHint.textContent = `今のラウンドは ${optionCount}択中 ${correctCount}個正解 の形式です。`;
-      els.clearBtn.classList.remove('hidden');
       setActionState('submit', {
         disabled: true,
         label: '判定する',
-        status: `${correctCount}個ちょうど選ぶと判定できます`,
+        status: `${correctCount}個ちょうど選ぶと自動で判定します`,
       });
       els.feedbackBox.className = 'feedback-box empty';
-      els.feedbackBox.innerHTML = `<div class="helper-text">該当する意味をすべてタップしてから判定してください。今回は <strong>${correctCount}個ちょうど</strong> 選ぶと判定ボタンが有効になります。</div>`;
+      els.feedbackBox.innerHTML = `<div class="helper-text">該当する意味をすべてタップしてください。今回は <strong>${correctCount}個ちょうど</strong> 選んだ瞬間に自動で判定します。</div>`;
       renderChoices();
     }
 
@@ -1901,11 +1849,15 @@
       const needed = state.currentQuestion.correctIds.size;
       const selected = state.selectedIds.size;
       const remaining = needed - selected;
+      clearAutoSubmit();
       setActionState('submit', {
         disabled: selected !== needed,
         label: '判定する',
-        status: remaining > 0 ? `あと${remaining}個選んでください` : selected > needed ? '選択数が多すぎます' : 'この内容で判定できます',
+        status: remaining > 0 ? `あと${remaining}個選んでください` : selected > needed ? '選択数が多すぎます' : '判定中…',
       });
+      if (selected === needed && !state.currentQuestion.resolved) {
+        state.autoSubmitId = setTimeout(() => submitAnswer('auto'), 130);
+      }
     }
 
     function startTimer(limit) {
@@ -1970,6 +1922,7 @@
 
     function submitAnswer(reason = 'manual') {
       if (!state.currentQuestion || state.currentQuestion.resolved || state.actionLocked) return;
+      clearAutoSubmit();
       state.actionLocked = true;
       state.currentQuestion.resolved = true;
       clearTimer();
@@ -2030,7 +1983,6 @@
         <div class="feedback-raw">${fullDefinition}</div>
       `;
 
-      els.clearBtn.classList.add('hidden');
       setActionState('next', {
         disabled: false,
         label: '次へ',
@@ -2117,18 +2069,8 @@
 
     els.startBtn.addEventListener('click', () => startSession(state.mode, state.count));
     els.resetStatsBtn.addEventListener('click', resetStats);
-    els.clearBtn.addEventListener('click', () => {
-      if (!state.currentQuestion || state.currentQuestion.resolved) return;
-      state.selectedIds.clear();
-      renderChoices();
-      updateSubmitAvailability();
-    });
     els.actionBtn.addEventListener('click', () => {
       if (state.actionLocked) return;
-      if (els.actionBtn.dataset.mode === 'submit') {
-        submitAnswer('manual');
-        return;
-      }
       state.actionLocked = true;
       setActionState('next', { disabled: true, label: '次へ', status: '読み込み中…' });
       nextQuestion();
@@ -2151,6 +2093,7 @@
       if (!els.quizPanel.classList.contains('active') || !state.currentQuestion) return;
       if (state.currentQuestion.resolved && /^[1-8Rr]$/.test(event.key)) return;
       if (/^[1-8]$/.test(event.key)) {
+        if (state.currentQuestion.resolved || state.actionLocked) return;
         const index = Number(event.key) - 1;
         const option = state.currentQuestion.options[index];
         if (!option) return;
@@ -2160,18 +2103,14 @@
         updateSubmitAvailability();
       }
       if (event.key === 'Enter') {
-        if (els.actionBtn.dataset.mode === 'submit' && !els.actionBtn.disabled) submitAnswer('manual');
-        else if (els.actionBtn.dataset.mode === 'next' && !els.actionBtn.disabled && !state.actionLocked) {
+        if (els.actionBtn.dataset.mode === 'next' && !els.actionBtn.disabled && !state.actionLocked) {
           state.actionLocked = true;
           setActionState('next', { disabled: true, label: '次へ', status: '読み込み中…' });
           nextQuestion();
         }
       }
       if (event.key.toLowerCase() === 'r') {
-        if (state.currentQuestion.resolved) return;
-        state.selectedIds.clear();
-        renderChoices();
-        updateSubmitAvailability();
+        return;
       }
     });
 
